@@ -3,6 +3,7 @@
 import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
+from httpx import AsyncClient
 from sqlalchemy import bindparam, text
 from sqlalchemy.engine import Connection
 
@@ -54,6 +55,17 @@ async def test_superuser_connection_is_refused(database: Database) -> None:
         await check_rls_enforced(Settings(database_url=database.owner_url))
     # And the app role passes the same check.
     await check_rls_enforced(Settings(database_url=database.app_url))
+
+
+async def test_readyz_passes_against_real_dependencies(client: AsyncClient) -> None:
+    """Every probe (postgres, RLS role, redis) answers against the test containers."""
+    response = await client.get("/readyz")
+    assert response.status_code == 200, response.json()
+    assert {k: v["status"] for k, v in response.json()["checks"].items()} == {
+        "postgres": "ok",
+        "rls": "ok",
+        "redis": "ok",
+    }
 
 
 async def test_app_role_without_context_sees_nothing(database: Database) -> None:

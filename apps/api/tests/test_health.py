@@ -66,10 +66,3 @@ async def test_readyz_reports_a_hung_probe_as_a_timeout(
     response = await client.get("/readyz")
     assert response.status_code == 503
     assert response.json()["checks"]["postgres"]["detail"].startswith("TimeoutError")
-
-
-@pytest.mark.integration
-async def test_readyz_against_the_compose_stack(client: AsyncClient) -> None:
-    """Runs only with ``make test-integration`` while ``make dev`` is up."""
-    response = await client.get("/readyz")
-    assert response.status_code == 200, response.json()

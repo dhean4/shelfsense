@@ -36,7 +36,12 @@
       },
       "ActionKind": {
         "description": "What the planner can decide to do.",
-        "enum": ["reorder", "dispatch", "notify", "escalate"],
+        "enum": [
+          "reorder",
+          "dispatch",
+          "notify",
+          "escalate"
+        ],
         "title": "ActionKind",
         "type": "string"
       },
@@ -185,7 +190,13 @@
       },
       "ActionStatus": {
         "description": "Lifecycle of a planner decision.",
-        "enum": ["proposed", "pending_review", "approved", "rejected", "executed"],
+        "enum": [
+          "proposed",
+          "pending_review",
+          "approved",
+          "rejected",
+          "executed"
+        ],
         "title": "ActionStatus",
         "type": "string"
       },
@@ -271,7 +282,10 @@
       },
       "AnomalyStatus": {
         "description": "Whether an excursion is still going on.",
-        "enum": ["open", "resolved"],
+        "enum": [
+          "open",
+          "resolved"
+        ],
         "title": "AnomalyStatus",
         "type": "string"
       },
@@ -303,7 +317,12 @@
             "type": "number"
           }
         },
-        "required": ["x", "y", "w", "h"],
+        "required": [
+          "x",
+          "y",
+          "w",
+          "h"
+        ],
         "title": "BBox",
         "type": "object"
       },
@@ -316,7 +335,9 @@
             "type": "string"
           }
         },
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "title": "Body_upload_photo_v1_shelves__shelf_id__photos_post",
         "type": "object"
       },
@@ -335,12 +356,17 @@
             "title": "Detail"
           },
           "status": {
-            "enum": ["ok", "fail"],
+            "enum": [
+              "ok",
+              "fail"
+            ],
             "title": "Status",
             "type": "string"
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "title": "CheckResult",
         "type": "object"
       },
@@ -381,7 +407,13 @@
             "title": "Sku Id"
           }
         },
-        "required": ["sku_id", "label", "facings", "region", "confidence"],
+        "required": [
+          "sku_id",
+          "label",
+          "facings",
+          "region",
+          "confidence"
+        ],
         "title": "DetectedItem",
         "type": "object"
       },
@@ -417,13 +449,20 @@
             "title": "Store Id"
           }
         },
-        "required": ["kind", "label", "external_id"],
+        "required": [
+          "kind",
+          "label",
+          "external_id"
+        ],
         "title": "DeviceIn",
         "type": "object"
       },
       "DeviceKind": {
         "description": "What sends telemetry.",
-        "enum": ["fridge", "vehicle"],
+        "enum": [
+          "fridge",
+          "vehicle"
+        ],
         "title": "DeviceKind",
         "type": "string"
       },
@@ -517,7 +556,9 @@
             "type": "string"
           }
         },
-        "required": ["detail"],
+        "required": [
+          "detail"
+        ],
         "title": "ErrorResponse",
         "type": "object"
       },
@@ -709,7 +750,9 @@
             "$ref": "#/components/schemas/ReviewVerdict"
           }
         },
-        "required": ["verdict"],
+        "required": [
+          "verdict"
+        ],
         "title": "ExtractionReviewIn",
         "type": "object"
       },
@@ -963,7 +1006,9 @@
             "type": "array"
           }
         },
-        "required": ["readings"],
+        "required": [
+          "readings"
+        ],
         "title": "IngestIn",
         "type": "object"
       },
@@ -990,7 +1035,11 @@
             "type": "array"
           }
         },
-        "required": ["accepted", "unknown_devices", "anomalies_opened"],
+        "required": [
+          "accepted",
+          "unknown_devices",
+          "anomalies_opened"
+        ],
         "title": "IngestOut",
         "type": "object"
       },
@@ -1008,7 +1057,11 @@
             "type": "string"
           }
         },
-        "required": ["user_id", "role", "tenant"],
+        "required": [
+          "user_id",
+          "role",
+          "tenant"
+        ],
         "title": "MeOut",
         "type": "object"
       },
@@ -1105,7 +1158,12 @@
       },
       "PhotoStatus": {
         "description": "Where a photo is in the pipeline.",
-        "enum": ["queued", "processing", "done", "failed"],
+        "enum": [
+          "queued",
+          "processing",
+          "done",
+          "failed"
+        ],
         "title": "PhotoStatus",
         "type": "string"
       },
@@ -1122,7 +1180,9 @@
             "type": "array"
           }
         },
-        "required": ["slots"],
+        "required": [
+          "slots"
+        ],
         "title": "PlanogramIn",
         "type": "object"
       },
@@ -1156,7 +1216,13 @@
             "type": "integer"
           }
         },
-        "required": ["id", "shelf_id", "version", "updated_at", "slots"],
+        "required": [
+          "id",
+          "shelf_id",
+          "version",
+          "updated_at",
+          "slots"
+        ],
         "title": "PlanogramOut",
         "type": "object"
       },
@@ -1186,7 +1252,12 @@
             "type": "string"
           }
         },
-        "required": ["sku_id", "position", "expected_facings", "min_facings"],
+        "required": [
+          "sku_id",
+          "position",
+          "expected_facings",
+          "min_facings"
+        ],
         "title": "PlanogramSlotIn",
         "type": "object"
       },
@@ -1216,7 +1287,13 @@
             "type": "string"
           }
         },
-        "required": ["id", "sku_id", "position", "expected_facings", "min_facings"],
+        "required": [
+          "id",
+          "sku_id",
+          "position",
+          "expected_facings",
+          "min_facings"
+        ],
         "title": "PlanogramSlotOut",
         "type": "object"
       },
@@ -1249,12 +1326,18 @@
             "type": "object"
           },
           "status": {
-            "enum": ["ok", "degraded"],
+            "enum": [
+              "ok",
+              "degraded"
+            ],
             "title": "Status",
             "type": "string"
           }
         },
-        "required": ["status", "checks"],
+        "required": [
+          "status",
+          "checks"
+        ],
         "title": "ReadinessResponse",
         "type": "object"
       },
@@ -1325,7 +1408,10 @@
             "title": "Temperature C"
           }
         },
-        "required": ["device_external_id", "recorded_at"],
+        "required": [
+          "device_external_id",
+          "recorded_at"
+        ],
         "title": "ReadingIn",
         "type": "object"
       },
@@ -1421,19 +1507,31 @@
             "type": "array"
           }
         },
-        "required": ["actions", "extractions"],
+        "required": [
+          "actions",
+          "extractions"
+        ],
         "title": "ReviewQueueOut",
         "type": "object"
       },
       "ReviewVerdict": {
         "description": "What a reviewer concluded about an extraction.",
-        "enum": ["correct", "corrected", "unusable"],
+        "enum": [
+          "correct",
+          "corrected",
+          "unusable"
+        ],
         "title": "ReviewVerdict",
         "type": "string"
       },
       "Role": {
         "description": "Tenant roles. Ordered from most to least privileged for documentation only.",
-        "enum": ["owner", "manager", "field_agent", "reviewer"],
+        "enum": [
+          "owner",
+          "manager",
+          "field_agent",
+          "reviewer"
+        ],
         "title": "Role",
         "type": "string"
       },
@@ -1648,13 +1746,20 @@
             "type": "boolean"
           }
         },
-        "required": ["extraction_id"],
+        "required": [
+          "extraction_id"
+        ],
         "title": "RunQueued",
         "type": "object"
       },
       "RunStatus": {
         "description": "Lifecycle of an agent run.",
-        "enum": ["queued", "running", "succeeded", "failed"],
+        "enum": [
+          "queued",
+          "running",
+          "succeeded",
+          "failed"
+        ],
         "title": "RunStatus",
         "type": "string"
       },
@@ -1673,7 +1778,10 @@
             "type": "string"
           }
         },
-        "required": ["sku_id", "percent"],
+        "required": [
+          "sku_id",
+          "percent"
+        ],
         "title": "ShareOfShelf",
         "type": "object"
       },
@@ -1715,7 +1823,13 @@
             "type": "array"
           }
         },
-        "required": ["items", "stock_outs", "share_of_shelf", "overall_confidence", "notes"],
+        "required": [
+          "items",
+          "stock_outs",
+          "share_of_shelf",
+          "overall_confidence",
+          "notes"
+        ],
         "title": "ShelfExtraction",
         "type": "object"
       },
@@ -1735,7 +1849,9 @@
             "type": "integer"
           }
         },
-        "required": ["label"],
+        "required": [
+          "label"
+        ],
         "title": "ShelfIn",
         "type": "object"
       },
@@ -1771,7 +1887,14 @@
             "type": "string"
           }
         },
-        "required": ["id", "store_id", "label", "position", "created_at", "updated_at"],
+        "required": [
+          "id",
+          "store_id",
+          "label",
+          "position",
+          "created_at",
+          "updated_at"
+        ],
         "title": "ShelfOut",
         "type": "object"
       },
@@ -1809,7 +1932,13 @@
             "type": "integer"
           }
         },
-        "required": ["name", "brand", "barcode", "category", "unit_price_kobo"],
+        "required": [
+          "name",
+          "brand",
+          "barcode",
+          "category",
+          "unit_price_kobo"
+        ],
         "title": "SkuIn",
         "type": "object"
       },
@@ -1894,7 +2023,11 @@
             "type": "string"
           },
           "status": {
-            "enum": ["ok", "low", "out"],
+            "enum": [
+              "ok",
+              "low",
+              "out"
+            ],
             "title": "Status",
             "type": "string"
           }
@@ -1939,7 +2072,12 @@
             "type": "string"
           }
         },
-        "required": ["name", "address", "latitude", "longitude"],
+        "required": [
+          "name",
+          "address",
+          "latitude",
+          "longitude"
+        ],
         "title": "StoreIn",
         "type": "object"
       },
@@ -1978,7 +2116,15 @@
             "type": "string"
           }
         },
-        "required": ["id", "name", "address", "latitude", "longitude", "created_at", "updated_at"],
+        "required": [
+          "id",
+          "name",
+          "address",
+          "latitude",
+          "longitude",
+          "created_at",
+          "updated_at"
+        ],
         "title": "StoreOut",
         "type": "object"
       },
@@ -1999,7 +2145,11 @@
             "type": "string"
           }
         },
-        "required": ["id", "slug", "name"],
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
         "title": "TenantOut",
         "type": "object"
       },
@@ -2110,7 +2260,12 @@
             "title": "Result"
           }
         },
-        "required": ["name", "result", "error", "duration_ms"],
+        "required": [
+          "name",
+          "result",
+          "error",
+          "duration_ms"
+        ],
         "title": "ToolRunOut",
         "type": "object"
       },
@@ -2131,7 +2286,11 @@
             "type": "string"
           }
         },
-        "required": ["name", "description", "input_schema"],
+        "required": [
+          "name",
+          "description",
+          "input_schema"
+        ],
         "title": "ToolSpecOut",
         "type": "object"
       },
@@ -2211,7 +2370,13 @@
             "$ref": "#/components/schemas/UsageTotals"
           }
         },
-        "required": ["days", "totals", "by_day", "by_model", "top_runs"],
+        "required": [
+          "days",
+          "totals",
+          "by_day",
+          "by_model",
+          "top_runs"
+        ],
         "title": "UsageOut",
         "type": "object"
       },
@@ -2356,7 +2521,11 @@
             "type": "string"
           }
         },
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError",
         "type": "object"
       }
@@ -2386,7 +2555,9 @@
           }
         },
         "summary": "Healthz",
-        "tags": ["health"]
+        "tags": [
+          "health"
+        ]
       }
     },
     "/readyz": {
@@ -2416,7 +2587,9 @@
           }
         },
         "summary": "Readyz",
-        "tags": ["health"]
+        "tags": [
+          "health"
+        ]
       }
     },
     "/v1/actions": {
@@ -2533,7 +2706,9 @@
           }
         },
         "summary": "List Actions",
-        "tags": ["actions"]
+        "tags": [
+          "actions"
+        ]
       }
     },
     "/v1/actions/{action_id}": {
@@ -2605,7 +2780,9 @@
           }
         },
         "summary": "Read Action",
-        "tags": ["actions"]
+        "tags": [
+          "actions"
+        ]
       }
     },
     "/v1/actions/{action_id}/approve": {
@@ -2697,7 +2874,9 @@
           }
         },
         "summary": "Approve Action",
-        "tags": ["review"]
+        "tags": [
+          "review"
+        ]
       }
     },
     "/v1/actions/{action_id}/reject": {
@@ -2789,7 +2968,9 @@
           }
         },
         "summary": "Reject Action",
-        "tags": ["review"]
+        "tags": [
+          "review"
+        ]
       }
     },
     "/v1/anomalies": {
@@ -2873,7 +3054,9 @@
           }
         },
         "summary": "List Anomalies",
-        "tags": ["telemetry"]
+        "tags": [
+          "telemetry"
+        ]
       }
     },
     "/v1/devices": {
@@ -2917,7 +3100,9 @@
           }
         },
         "summary": "List Devices",
-        "tags": ["telemetry"]
+        "tags": [
+          "telemetry"
+        ]
       },
       "post": {
         "description": "Register a fridge or vehicle. Owners and managers only.",
@@ -2985,7 +3170,9 @@
           }
         },
         "summary": "Create Device",
-        "tags": ["telemetry"]
+        "tags": [
+          "telemetry"
+        ]
       }
     },
     "/v1/devices/{device_id}/telemetry": {
@@ -3090,7 +3277,9 @@
           }
         },
         "summary": "Device Readings",
-        "tags": ["telemetry"]
+        "tags": [
+          "telemetry"
+        ]
       }
     },
     "/v1/extractions/{extraction_id}/plan": {
@@ -3162,7 +3351,9 @@
           }
         },
         "summary": "Plan Extraction",
-        "tags": ["runs"]
+        "tags": [
+          "runs"
+        ]
       }
     },
     "/v1/extractions/{extraction_id}/review": {
@@ -3254,7 +3445,9 @@
           }
         },
         "summary": "Review Extraction",
-        "tags": ["review"]
+        "tags": [
+          "review"
+        ]
       }
     },
     "/v1/golden": {
@@ -3298,7 +3491,9 @@
           }
         },
         "summary": "List Golden",
-        "tags": ["review"]
+        "tags": [
+          "review"
+        ]
       }
     },
     "/v1/labels": {
@@ -3342,7 +3537,9 @@
           }
         },
         "summary": "List Labels",
-        "tags": ["review"]
+        "tags": [
+          "review"
+        ]
       }
     },
     "/v1/labels/{review_id}/promote": {
@@ -3434,7 +3631,9 @@
           }
         },
         "summary": "Promote Label",
-        "tags": ["review"]
+        "tags": [
+          "review"
+        ]
       }
     },
     "/v1/me": {
@@ -3474,7 +3673,9 @@
           }
         },
         "summary": "Read Me",
-        "tags": ["identity"]
+        "tags": [
+          "identity"
+        ]
       }
     },
     "/v1/photos/{photo_id}": {
@@ -3546,7 +3747,9 @@
           }
         },
         "summary": "Read Photo",
-        "tags": ["photos"]
+        "tags": [
+          "photos"
+        ]
       }
     },
     "/v1/review/queue": {
@@ -3586,7 +3789,9 @@
           }
         },
         "summary": "Review Queue",
-        "tags": ["review"]
+        "tags": [
+          "review"
+        ]
       }
     },
     "/v1/runs": {
@@ -3687,7 +3892,9 @@
           }
         },
         "summary": "List Runs",
-        "tags": ["runs"]
+        "tags": [
+          "runs"
+        ]
       }
     },
     "/v1/runs/stream": {
@@ -3726,7 +3933,9 @@
           }
         },
         "summary": "Stream Runs",
-        "tags": ["runs"]
+        "tags": [
+          "runs"
+        ]
       }
     },
     "/v1/runs/{run_id}": {
@@ -3798,7 +4007,9 @@
           }
         },
         "summary": "Read Run",
-        "tags": ["runs"]
+        "tags": [
+          "runs"
+        ]
       }
     },
     "/v1/shelves/{shelf_id}": {
@@ -3870,7 +4081,9 @@
           }
         },
         "summary": "Read Shelf",
-        "tags": ["shelves"]
+        "tags": [
+          "shelves"
+        ]
       }
     },
     "/v1/shelves/{shelf_id}/photos": {
@@ -3946,7 +4159,9 @@
           }
         },
         "summary": "List Photos",
-        "tags": ["photos"]
+        "tags": [
+          "photos"
+        ]
       },
       "post": {
         "description": "Store the photo and queue the vision extraction. Returns 202 with status ``queued``.",
@@ -4056,7 +4271,9 @@
           }
         },
         "summary": "Upload Photo",
-        "tags": ["photos"]
+        "tags": [
+          "photos"
+        ]
       }
     },
     "/v1/shelves/{shelf_id}/planogram": {
@@ -4128,7 +4345,9 @@
           }
         },
         "summary": "Read Planogram",
-        "tags": ["planograms"]
+        "tags": [
+          "planograms"
+        ]
       },
       "put": {
         "description": "Replace the planogram. Creates it on first write, bumps ``version`` after that.",
@@ -4218,7 +4437,9 @@
           }
         },
         "summary": "Put Planogram",
-        "tags": ["planograms"]
+        "tags": [
+          "planograms"
+        ]
       }
     },
     "/v1/skus": {
@@ -4291,7 +4512,9 @@
           }
         },
         "summary": "List Skus",
-        "tags": ["skus"]
+        "tags": [
+          "skus"
+        ]
       },
       "post": {
         "description": "Create a SKU. Owners and managers only.",
@@ -4359,7 +4582,9 @@
           }
         },
         "summary": "Create Sku",
-        "tags": ["skus"]
+        "tags": [
+          "skus"
+        ]
       }
     },
     "/v1/stores": {
@@ -4403,7 +4628,9 @@
           }
         },
         "summary": "List Stores",
-        "tags": ["stores"]
+        "tags": [
+          "stores"
+        ]
       },
       "post": {
         "description": "Create a store. Owners and managers only.",
@@ -4471,7 +4698,9 @@
           }
         },
         "summary": "Create Store",
-        "tags": ["stores"]
+        "tags": [
+          "stores"
+        ]
       }
     },
     "/v1/stores/{store_id}": {
@@ -4543,7 +4772,9 @@
           }
         },
         "summary": "Read Store",
-        "tags": ["stores"]
+        "tags": [
+          "stores"
+        ]
       }
     },
     "/v1/stores/{store_id}/shelves": {
@@ -4619,7 +4850,9 @@
           }
         },
         "summary": "List Shelves",
-        "tags": ["stores"]
+        "tags": [
+          "stores"
+        ]
       },
       "post": {
         "description": "Add a shelf to a store. Owners and managers only.",
@@ -4709,7 +4942,9 @@
           }
         },
         "summary": "Create Shelf",
-        "tags": ["stores"]
+        "tags": [
+          "stores"
+        ]
       }
     },
     "/v1/telemetry": {
@@ -4779,7 +5014,9 @@
           }
         },
         "summary": "Ingest Http",
-        "tags": ["telemetry"]
+        "tags": [
+          "telemetry"
+        ]
       }
     },
     "/v1/telemetry/stream": {
@@ -4818,7 +5055,9 @@
           }
         },
         "summary": "Stream",
-        "tags": ["telemetry"]
+        "tags": [
+          "telemetry"
+        ]
       }
     },
     "/v1/telemetry/summary": {
@@ -4862,7 +5101,9 @@
           }
         },
         "summary": "Summary",
-        "tags": ["telemetry"]
+        "tags": [
+          "telemetry"
+        ]
       }
     },
     "/v1/tools": {
@@ -4906,7 +5147,9 @@
           }
         },
         "summary": "List Tools",
-        "tags": ["tools"]
+        "tags": [
+          "tools"
+        ]
       }
     },
     "/v1/tools/{name}": {
@@ -4989,7 +5232,9 @@
           }
         },
         "summary": "Run Tool",
-        "tags": ["tools"]
+        "tags": [
+          "tools"
+        ]
       }
     },
     "/v1/usage": {
@@ -5053,7 +5298,9 @@
           }
         },
         "summary": "Usage",
-        "tags": ["usage"]
+        "tags": [
+          "usage"
+        ]
       }
     }
   },

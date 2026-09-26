@@ -7,6 +7,7 @@ session-scoped test loop never sees a connection bound to another loop.
 
 import asyncio
 import os
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -39,6 +40,10 @@ pytestmark = pytest.mark.integration
 # mount; the Ryuk cleanup sidecar then fails to start. The standard path is symlinked to
 # the same daemon. A no-op on Linux runners.
 os.environ.setdefault("TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE", "/var/run/docker.sock")
+if sys.platform == "darwin":
+    # Ryuk's port mapping is flaky on Docker Desktop; every fixture here stops its own
+    # container, so the cleanup sidecar is only needed on CI runners (Linux).
+    os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")
 
 IMAGE = "pgvector/pgvector:pg16"
 OWNER = ("shelfsense", "shelfsense")

@@ -283,8 +283,10 @@ class AgentRun(TenantScoped, Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Planner runs (P3): who triggered it, which extraction it acted on, what it decided.
     trigger_role: Mapped[str | None] = mapped_column(String(32))
+    # use_alter: extractions also point at agent_runs, so this FK is created after both
+    # tables exist and SQLAlchemy does not see a dependency cycle.
     extraction_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("extractions.id", ondelete="SET NULL"), index=True
+        ForeignKey("extractions.id", ondelete="SET NULL", use_alter=True), index=True
     )
     summary: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
