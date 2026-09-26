@@ -1,0 +1,13 @@
+# Generated or vendored
+node_modules/
+.next/
+dist/
+.turbo/
+pnpm-lock.yaml
+uv.lock
+.venv/
+**/__pycache__/
+packages/shared/src/generated/
+
+# Python is formatted by ruff
+*.py

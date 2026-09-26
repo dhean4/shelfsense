@@ -1,0 +1,95 @@
+[project]
+name = "shelfsense"
+version = "0.1.0"
+description = "Workspace root for the ShelfSense Python services (API, simulator, evals)."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+
+# The root is an aggregator, not an installable package.
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["apps/api", "apps/simulator"]
+
+[tool.uv.sources]
+shelfsense-api = { workspace = true }
+shelfsense-simulator = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "shelfsense-api",
+    "shelfsense-simulator",
+    "ruff==0.16.9",
+    "mypy==2.3.1",
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "httpx==0.28.1",
+    "asyncpg-stubs>=0.30",
+]
+
+# ---------------------------------------------------------------------------
+# Tooling (shared by every workspace member)
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["apps/api", "apps/simulator"]
+extend-exclude = ["apps/web", "packages", "node_modules"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "BLE",  # blind `except Exception` — allowed only with a stated reason
+    "UP",   # pyupgrade
+    "C4",   # comprehensions
+    "SIM",  # simplify
+    "TID",  # tidy imports
+    "PTH",  # use pathlib
+    "RUF",  # ruff-specific
+    "D",    # docstrings
+    "ASYNC", # async pitfalls
+]
+ignore = [
+    "D203", # one-blank-line-before-class conflicts with D211
+    "D213", # multi-line-summary-second-line conflicts with D212
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests document themselves through their names.
+"**/tests/**" = ["D100", "D101", "D102", "D103", "D104"]
+"**/__init__.py" = ["D104"]
+
+[tool.mypy]
+python_version = "3.12"
+# Without this, mypy does not understand that a pydantic field with a default is
+# optional at the call site, and reports every model construction as missing arguments.
+plugins = ["pydantic.mypy"]
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+pretty = true
+strict = true
+# Each workspace member is checked from its own directory (see `make typecheck`) so the
+# two `tests` packages never collide inside one mypy run.
+explicit_package_bases = true
+
+[tool.pytest.ini_options]
+testpaths = ["apps/api/tests", "apps/simulator/tests"]
+# importlib mode: both members have a `tests` package; prepend mode would shadow one.
+addopts = "-q --strict-markers --strict-config --import-mode=importlib"
+asyncio_mode = "auto"
+markers = [
+    "integration: needs the Compose stack (postgres, redis, ...); excluded from the unit run",
+    "network: hits a live external API; excluded from the default run and from CI",
+]

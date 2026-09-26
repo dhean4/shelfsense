@@ -1,0 +1,37 @@
+# Secrets and local overrides
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+.pnpm-store/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+.next/
+out/
+dist/
+.vercel
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Generated (regenerate with `pnpm --filter @shelfsense/shared generate`)
+packages/shared/src/generated/
+
+# Docker volumes and local data
+.data/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+*.log
+*.pem

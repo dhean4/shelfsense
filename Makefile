@@ -1,0 +1,107 @@
+.DEFAULT_GOAL := help
+SHELL := /bin/bash
+
+UV := uv run
+COMPOSE := docker compose
+PY_MEMBERS := apps/api apps/simulator
+
+.PHONY: help
+help: ## Show this help
+	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+
+# --- Environment -------------------------------------------------------------------
+
+.env:
+	cp .env.example .env
+	@echo "created .env from .env.example"
+
+.PHONY: install
+install: ## Install Python (uv) and Node (pnpm) dependencies
+	uv sync
+	pnpm install
+
+.PHONY: dev
+dev: .env ## Start core infra: postgres, redis, minio, mosquitto
+	$(COMPOSE) up -d --wait
+	@echo "postgres :$${POSTGRES_PORT:-5433}  redis :$${REDIS_PORT:-6379}  minio :$${MINIO_PORT:-9000}  mqtt :$${MQTT_PORT:-1883}"
+
+.PHONY: dev-full
+dev-full: .env ## Core infra plus Langfuse v3 + ClickHouse (observability profile)
+	$(COMPOSE) --profile observability up -d --wait
+	@echo "langfuse http://localhost:$${LANGFUSE_PORT:-3001}  (dev@shelfsense.local / shelfsense-dev-password)"
+
+.PHONY: down
+down: ## Stop every service, keep volumes
+	$(COMPOSE) --profile observability down
+
+.PHONY: nuke
+nuke: ## Stop every service and delete volumes (destroys local data)
+	$(COMPOSE) --profile observability down -v
+
+.PHONY: logs
+logs: ## Tail service logs
+	$(COMPOSE) --profile observability logs -f --tail=100
+
+.PHONY: api
+api: ## Run the API with reload on :8000
+	$(UV) shelfsense-api
+
+.PHONY: web
+web: ## Run the Next.js dev server on :3000
+	pnpm --filter @shelfsense/web dev
+
+# --- Verification ------------------------------------------------------------------
+
+.PHONY: test
+test: ## Unit tests: Python (offline) and TS
+	$(UV) pytest -m "not integration and not network"
+	pnpm test
+
+.PHONY: test-integration
+test-integration: ## Python tests that need `make dev` running
+	$(UV) pytest -m integration
+
+.PHONY: lint
+lint: ## Lint and check formatting (ruff, eslint, prettier)
+	$(UV) ruff check .
+	$(UV) ruff format --check .
+	pnpm lint
+	pnpm format:check
+
+.PHONY: format
+format: ## Auto-fix lint and formatting
+	$(UV) ruff check --fix .
+	$(UV) ruff format .
+	pnpm format
+
+.PHONY: typecheck
+typecheck: typecheck-py ## mypy --strict and tsc across the workspace
+	pnpm typecheck
+
+.PHONY: typecheck-py
+typecheck-py: ## mypy --strict, one run per Python workspace member
+	@for m in $(PY_MEMBERS); do \
+		echo "mypy $$m"; \
+		(cd $$m && $(UV) mypy --config-file ../../pyproject.toml .) || exit 1; \
+	done
+
+.PHONY: build
+build: ## Build every TS package and the web app
+	pnpm build
+
+.PHONY: verify
+verify: lint typecheck test build ## Everything CI runs, locally
+	@echo "all checks passed"
+
+.PHONY: eval
+eval: ## Run the agent evals against the golden set
+	@echo "make eval: the evals package and runner arrive in P6." >&2
+	@exit 1
+
+.PHONY: clean
+clean: ## Remove build artefacts and caches (not Docker volumes)
+	rm -rf .turbo .pytest_cache .mypy_cache .ruff_cache
+	find . -name node_modules -type d -prune -exec rm -rf {} +
+	find . -name .next -type d -prune -exec rm -rf {} +
+	find . -name dist -type d -prune -not -path "*/node_modules/*" -exec rm -rf {} +
