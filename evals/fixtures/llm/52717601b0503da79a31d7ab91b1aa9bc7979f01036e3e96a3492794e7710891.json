@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store\nShelf: Dry Goods (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | 7bc5c54c-91d4-545f-8a06-8fc4d571968c | Indomie \u2014 Indomie Chicken 70g | 3 | 1\n2 | f7d39f88-d160-5fd9-bbcb-65e5f11aae1f | Indomie \u2014 Indomie Onion Chicken 120g | 3 | 1\n3 | 6cbb55a2-bf0e-5bf0-915d-96a0132791cd | Golden Penny \u2014 Golden Penny Spaghetti 500g | 4 | 1\n4 | 830170dc-259b-52b1-b8e8-ca5cef48258d | Dangote \u2014 Dangote Spaghetti 500g | 3 | 1\n5 | 102a7dd0-057b-5d",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_032"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 11229,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgia9SjUrNYprXySjg4",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"7bc5c54c-91d4-545f-8a06-8fc4d571968c\",\"label\":\"Indomie Chicken 70g\",\"facings\":4,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.339,\"h\":0.365},\"confidence\":0.93},{\"sku_id\":\"f7d39f88-d160-5fd9-bbcb-65e5f11aae1f\",\"label\":\"Indomie Onion Chicken 120g\",\"facings\":2,\"region\":{\"x\":0.359,\"y\":0.073,\"w\":0.166,\"h\":0.365},\"confidence\":0.92},{\"sku_id\":\"6cbb55a2-bf0e-5bf0-915d-96a0132791cd\",\"label\":\"Golden Penny Spaghetti 500g\",\"facings\":4,\"region\":{\"x\":0.531,\"y\":0.073,\"w\":0.339,\"h\":0.365},\"confidence\":0.92},{\"sku_id\":\"830170dc-259b-52b1-b8e8-ca5cef48258d\",\"label\":\"Dangote Spaghetti 500g\",\"facings\":4,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.941,\"h\":0.813},\"confidence\":0.88},{\"sku_id\":\"102a7dd0-057b-5d0f-b205-0e0edcf16a7a\",\"label\":\"Golden Penny Semovita 1kg\",\"facings\":2,\"region\":{\"x\":0.273,\"y\":0.527,\"w\":0.167,\"h\":0.353},\"confidence\":0.9}],\"stock_outs\":[],\"share_of_shelf\":[{\"sku_id\":\"7bc5c54c-91d4-545f-8a06-8fc4d571968c\",\"percent\":25},{\"sku_id\":\"f7d39f88-d160-5fd9-bbcb-65e5f11aae1f\",\"percent\":12.5},{\"sku_id\":\"6cbb55a2-bf0e-5bf0-915d-96a0132791cd\",\"percent\":25},{\"sku_id\":\"830170dc-259b-52b1-b8e8-ca5cef48258d\",\"percent\":25},{\"sku_id\":\"102a7dd0-057b-5d0f-b205-0e0edcf16a7a\",\"percent\":12.5}],\"overall_confidence\":0.85,\"notes\":\"Two shelves visible. Top shelf: 4 Indomie Chicken, 2 Indomie Onion Chicken, 4 Golden Penny Spaghetti, 1 Dangote Spaghetti. Bottom shelf: 3 more Dangote Spaghetti and 2 Golden Penny Semovita, so Dangote facings are merged across both shelves (4 total) and its bounding box spans both rows. Labels are partly truncated by neighbouring packs, but brand/variant text is legible. Indomie Onion Chicken (2) and Golden Penny Semovita (2) are below expected facings; no SKU is fully out of stock. Bottom shelf right side is empty.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1707,
+      "output_tokens": 1102
+    }
+  }
+}

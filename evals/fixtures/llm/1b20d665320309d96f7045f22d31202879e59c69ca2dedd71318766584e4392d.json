@@ -1,0 +1,45 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Surulere Chill Store (store_id b259fe1b-7a8d-5ad8-9909-83050d9f8112)\nShelf: Chiller\nAudit confidence: 0.92\nStock-outs: 1 of 10 planogram SKUs; compliance 90%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\n51b856b7-2c43-5c38-827a-02094bac2cf6 | Pepsi 50cl PET | 3 | 1 | 0 | out\nb6aaa98d-a3f2-5e50-a170-c2a5a8bc54ca | Fanta Orange 50cl PET | 3 | 1 | 3 | ok\n4ac0ebba-be45-51cd-afbb-97d6d3553c3f | Sprite 50cl PET | 4 | ",
+    "metadata": {
+      "agent": "planner",
+      "run": "8e280eea-b0e8-5d46-83ef-b8a85589f819",
+      "step": "1"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 4146,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgsPEND6uRyYNvZxW41",
+    "stop_reason": "tool_use",
+    "text": "I'll check inventory first.",
+    "tool_calls": [
+      {
+        "id": "toolu_01VFMfJ2yvD5czfeDrxy5vqo",
+        "input": {
+          "sku_ids": ["51b856b7-2c43-5c38-827a-02094bac2cf6"],
+          "store_id": "b259fe1b-7a8d-5ad8-9909-83050d9f8112"
+        },
+        "name": "get_inventory"
+      },
+      {
+        "id": "toolu_018yhREjdNjjQTHwmzL364T3",
+        "input": {
+          "sku_ids": ["51b856b7-2c43-5c38-827a-02094bac2cf6"],
+          "store_id": "b259fe1b-7a8d-5ad8-9909-83050d9f8112"
+        },
+        "name": "get_inventory"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 794,
+      "output_tokens": 269
+    }
+  }
+}

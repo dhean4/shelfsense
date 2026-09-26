@@ -1,0 +1,49 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store (store_id 74ff2e53-2bb9-57a4-9bdf-0834bd2a813a)\nShelf: Household\nAudit confidence: 0.86\nStock-outs: 1 of 5 planogram SKUs; compliance 80%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\ndfca77cd-14f6-529c-870d-36ede59d003e | Sunlight Detergent 900g | 3 | 1 | 0 | out\n6a508091-fc9f-5618-9b5c-6ab322ec73f2 | Omo Detergent 1kg | 3 | 1 | 3 | ok\n6790feda-b94a-5789-bd64-71ef10e5670a | Dettol Soap 110g | ",
+    "metadata": {
+      "agent": "planner",
+      "run": "e97be982-12c5-5256-9e8a-9604924a4087",
+      "step": "2"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 8583,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgwojd5QHKkWqvv9hpR",
+    "stop_reason": "tool_use",
+    "text": "",
+    "tool_calls": [
+      {
+        "id": "toolu_01Dq5NLCkUVJ4Xph5f4DEYcn",
+        "input": {
+          "quantity": 12,
+          "reason": "Sunlight Detergent 900g stocked out on Household shelf (0 of 3 facings); on_hand 6 is at reorder point 6. One case of 12 brings stock to 18, covering 3 facings x 3 units (9) plus reorder point (6).",
+          "sku_id": "dfca77cd-14f6-529c-870d-36ede59d003e",
+          "store_id": "74ff2e53-2bb9-57a4-9bdf-0834bd2a813a"
+        },
+        "name": "create_reorder"
+      },
+      {
+        "id": "toolu_012J5uuB2XViR8kGWRgwjen6",
+        "input": {
+          "body": "Household shelf audit (confidence 0.86, compliance 80%): Sunlight Detergent 900g is empty on shelf (0 of 3 facings). There are 6 units in back stock \u2014 please refill the shelf today to at least 3 facings. Stock is also at the reorder point, so a replenishment case of 12 has been proposed. All other 4 planogram SKUs (Omo 1kg, Dettol Soap, Lux Soap, Close Up) are at expected facings; no unknown products seen.",
+          "channel": "whatsapp",
+          "recipient_role": "manager",
+          "subject": "Yaba Market Store \u2013 refill Sunlight Detergent on Household shelf"
+        },
+        "name": "notify"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 1115,
+      "output_tokens": 755
+    }
+  }
+}

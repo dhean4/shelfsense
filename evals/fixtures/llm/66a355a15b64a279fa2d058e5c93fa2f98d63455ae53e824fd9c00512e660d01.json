@@ -1,0 +1,40 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Ikeja Depot Shop (store_id 9ac254a5-14de-5638-b3b1-57fd8bdb204c)\nShelf: Drinks Chiller\nAudit confidence: 0.93\nStock-outs: 2 of 11 planogram SKUs; compliance 82%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\n771d0edb-f3a7-53c1-bbda-9111aed1809f | Coca-Cola 50cl PET | 3 | 1 | 0 | out\n3d65d108-9bee-587d-89bf-d9399565c7d6 | Pepsi 50cl PET | 3 | 1 | 3 | ok\n298ff6a3-ff87-5ac6-8f3c-6a443f343b52 | Fanta Orange 50cl PET ",
+    "metadata": {
+      "agent": "planner",
+      "run": "2fa957c0-8a60-5b13-b789-c79b9dc46b70",
+      "step": "1"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 2881,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgtDENvXVPiQr4hFQ8G",
+    "stop_reason": "tool_use",
+    "text": "I'll start by checking inventory for the two stocked-out SKUs.",
+    "tool_calls": [
+      {
+        "id": "toolu_01BLCvL7UzSwKkdAaMkJKTT2",
+        "input": {
+          "sku_ids": [
+            "771d0edb-f3a7-53c1-bbda-9111aed1809f",
+            "a26c22ba-a215-5851-88ab-5ee0e325da97"
+          ],
+          "store_id": "9ac254a5-14de-5638-b3b1-57fd8bdb204c"
+        },
+        "name": "get_inventory"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 855,
+      "output_tokens": 181
+    }
+  }
+}

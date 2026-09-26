@@ -40,7 +40,15 @@ def get_provider(settings: Settings) -> LLMProvider:
     if settings.llm_provider == "replay":
         from shelfsense_api.llm.replay import ReplayProvider
 
-        provider = ReplayProvider(fixtures)
+        fallback: LLMProvider | None = None
+        if settings.llm_record:
+            # Replay what exists, call the API only for misses and record them: the cheap
+            # way to fill in fixtures after adding cases or after a partial run.
+            from shelfsense_api.llm.anthropic_provider import AnthropicProvider
+            from shelfsense_api.llm.replay import RecordingProvider
+
+            fallback = RecordingProvider(AnthropicProvider(), fixtures)
+        provider = ReplayProvider(fixtures, fallback=fallback)
     elif settings.llm_provider == "fake":
         from shelfsense_api.llm.fake import FakeProvider
 

@@ -38,18 +38,23 @@ def _describe(request: LLMRequest) -> dict[str, Any]:
 
 
 class ReplayProvider:
-    """Serves recorded responses; a miss is an error, never a silent fake."""
+    """Serves recorded responses; a miss is an error (or a live call when a fallback is set)."""
 
     name = "replay"
 
-    def __init__(self, directory: Path) -> None:
-        """Read fixtures from ``directory``."""
+    def __init__(self, directory: Path, fallback: LLMProvider | None = None) -> None:
+        """Read fixtures from ``directory``; on a miss, delegate to ``fallback`` if given."""
         self._dir = directory
+        self._fallback = fallback
+        self.misses = 0
 
     async def complete(self, request: LLMRequest) -> LLMResponse:
         """Return the recorded response for this exact request."""
         path = _fixture_path(self._dir, request)
         if not path.exists():
+            self.misses += 1
+            if self._fallback is not None:
+                return await self._fallback.complete(request)
             raise LLMError(
                 f"no recorded fixture for request {request.fingerprint()[:12]} "
                 f"({request.metadata}); run `make record-fixtures` with an API key",

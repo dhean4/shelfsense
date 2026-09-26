@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Surulere Chill Store\nShelf: Chiller (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | 51b856b7-2c43-5c38-827a-02094bac2cf6 | Pepsi \u2014 Pepsi 50cl PET | 3 | 1\n2 | b6aaa98d-a3f2-5e50-a170-c2a5a8bc54ca | Coca-Cola \u2014 Fanta Orange 50cl PET | 3 | 1\n3 | 4ac0ebba-be45-51cd-afbb-97d6d3553c3f | Coca-Cola \u2014 Sprite 50cl PET | 4 | 1\n4 | a747e15d-49ff-50a4-81a8-8a5370defeb3 | Bigi \u2014 Bigi Cola 60cl | 3 | 1\n5 | 1412203f-87a8-5729-b5d1-63a55da7de55 | Eva \u2014 Eva Wa",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_022"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 10883,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRggQzUSHeAUNdCfhjbH",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"51b856b7-2c43-5c38-827a-02094bac2cf6\",\"label\":\"Pepsi 50cl PET\",\"facings\":2,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.166,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":\"1412203f-87a8-5729-b5d1-63a55da7de55\",\"label\":\"Eva Water 75cl\",\"facings\":1,\"region\":{\"x\":0.187,\"y\":0.073,\"w\":0.081,\"h\":0.36},\"confidence\":0.88},{\"sku_id\":\"2752c002-03e5-5d60-991f-185a88d31b83\",\"label\":\"Chivita Orange 1L\",\"facings\":1,\"region\":{\"x\":0.273,\"y\":0.073,\"w\":0.081,\"h\":0.36},\"confidence\":0.85},{\"sku_id\":\"e52bdb6b-007e-5e6c-a022-6d02330c4f33\",\"label\":\"Amstel Malta 33cl Can\",\"facings\":1,\"region\":{\"x\":0.359,\"y\":0.073,\"w\":0.081,\"h\":0.36},\"confidence\":0.85}],\"stock_outs\":[\"b6aaa98d-a3f2-5e50-a170-c2a5a8bc54ca\",\"4ac0ebba-be45-51cd-afbb-97d6d3553c3f\",\"a747e15d-49ff-50a4-81a8-8a5370defeb3\",\"d65c748d-519f-5d8c-ace5-32e6e3a0396b\",\"e709e2d5-d028-5c8f-9172-51b4914af9d1\",\"743306a9-0e73-51cb-b5c0-d38b9be15be3\"],\"share_of_shelf\":[{\"sku_id\":\"51b856b7-2c43-5c38-827a-02094bac2cf6\",\"percent\":40},{\"sku_id\":\"1412203f-87a8-5729-b5d1-63a55da7de55\",\"percent\":20},{\"sku_id\":\"2752c002-03e5-5d60-991f-185a88d31b83\",\"percent\":20},{\"sku_id\":\"e52bdb6b-007e-5e6c-a022-6d02330c4f33\",\"percent\":20}],\"overall_confidence\":0.72,\"notes\":\"Only the left portion of the chiller shelf is stocked; the right side of the shelf is empty. 5 facings visible in total, well below planogram expectation (33). Product labels are legible but rendering is schematic/low-detail, so pack size matching relies on the printed text. Six planogram SKUs show zero facings.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1984,
+      "output_tokens": 1043
+    }
+  }
+}

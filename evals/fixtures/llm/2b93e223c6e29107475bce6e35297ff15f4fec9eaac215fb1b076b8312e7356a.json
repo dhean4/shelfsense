@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Ikeja Depot Shop\nShelf: Dairy Chiller (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | fe12b692-038b-580a-8b31-ca85e9b7931f | Peak \u2014 Peak Evaporated Milk 160g | 3 | 1\n2 | 49e24ab6-4804-5f85-9ec0-65a02401eec7 | Peak \u2014 Peak Powdered Milk 400g | 3 | 1\n3 | 7c33d189-d58d-548a-925e-929c713ac88b | Three Crowns \u2014 Three Crowns Evaporated Milk 160g | 4 | 1\n4 | 02cdf388-4b50-51ea-8d97-a57b4a733065 | Cowbell \u2014 Cowbell Milk Sachet 12g | 3 | 1\n5 | 86da5d60-",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_042"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 11051,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgkrje6M8UAAQzUK9C2",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"fe12b692-038b-580a-8b31-ca85e9b7931f\",\"label\":\"Peak Evaporated Milk 160g\",\"facings\":3,\"region\":{\"x\":0.015,\"y\":0.072,\"w\":0.253,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":\"49e24ab6-4804-5f85-9ec0-65a02401eec7\",\"label\":\"Peak Powdered Milk 400g\",\"facings\":4,\"region\":{\"x\":0.273,\"y\":0.072,\"w\":0.338,\"h\":0.36},\"confidence\":0.89},{\"sku_id\":\"86da5d60-8ade-551f-97b1-24f03f3f84fe\",\"label\":\"Dano Cool Cow Milk 400g\",\"facings\":2,\"region\":{\"x\":0.616,\"y\":0.072,\"w\":0.167,\"h\":0.36},\"confidence\":0.88},{\"sku_id\":\"b2ded22d-caa3-5fce-8c90-f2dd2580d4b0\",\"label\":\"Hollandia Yoghurt 1L\",\"facings\":4,\"region\":{\"x\":0.015,\"y\":0.072,\"w\":0.941,\"h\":0.81},\"confidence\":0.85}],\"stock_outs\":[\"7c33d189-d58d-548a-925e-929c713ac88b\",\"02cdf388-4b50-51ea-8d97-a57b4a733065\"],\"share_of_shelf\":[{\"sku_id\":\"fe12b692-038b-580a-8b31-ca85e9b7931f\",\"percent\":23.1},{\"sku_id\":\"49e24ab6-4804-5f85-9ec0-65a02401eec7\",\"percent\":30.8},{\"sku_id\":\"7c33d189-d58d-548a-925e-929c713ac88b\",\"percent\":0},{\"sku_id\":\"02cdf388-4b50-51ea-8d97-a57b4a733065\",\"percent\":0},{\"sku_id\":\"86da5d60-8ade-551f-97b1-24f03f3f84fe\",\"percent\":15.4},{\"sku_id\":\"b2ded22d-caa3-5fce-8c90-f2dd2580d4b0\",\"percent\":30.8}],\"overall_confidence\":0.82,\"notes\":\"Two shelf levels visible: top shelf holds Peak Evaporated (3), Peak Powdered (4), Dano Cool Cow (2) and Hollandia Yoghurt (2); lower shelf holds 2 further Hollandia Yoghurt facings, merged into one item (4 total). Hollandia bounding box spans both shelves. Three Crowns Evaporated Milk and Cowbell Milk Sachet are not visible anywhere \u2014 recorded as stock-outs. Dano is below expected 3 facings. Pack labels are partially truncated by neighbouring packs, so size/variant matching relies on brand text.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1767,
+      "output_tokens": 1073
+    }
+  }
+}

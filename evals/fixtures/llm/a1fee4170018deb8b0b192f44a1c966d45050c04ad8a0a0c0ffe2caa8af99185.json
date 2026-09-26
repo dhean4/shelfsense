@@ -1,0 +1,45 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Ikeja Depot Shop (store_id 9ac254a5-14de-5638-b3b1-57fd8bdb204c)\nShelf: Dairy Chiller\nAudit confidence: 0.77\nStock-outs: 1 of 6 planogram SKUs; compliance 83%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\nfe12b692-038b-580a-8b31-ca85e9b7931f | Peak Evaporated Milk 160g | 3 | 1 | 3 | ok\n49e24ab6-4804-5f85-9ec0-65a02401eec7 | Peak Powdered Milk 400g | 3 | 1 | 0 | out\n7c33d189-d58d-548a-925e-929c713ac88b | Three Cr",
+    "metadata": {
+      "agent": "planner",
+      "run": "174a67ea-9066-5d56-aba0-fd4848223141",
+      "step": "1"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 4459,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRh5PLuBfaRukMn56TU9",
+    "stop_reason": "tool_use",
+    "text": "I'll start by checking inventory for this store.",
+    "tool_calls": [
+      {
+        "id": "toolu_01B464JefqxVY5SrUQxwXXBE",
+        "input": {
+          "sku_ids": ["49e24ab6-4804-5f85-9ec0-65a02401eec7"],
+          "store_id": "9ac254a5-14de-5638-b3b1-57fd8bdb204c"
+        },
+        "name": "get_inventory"
+      },
+      {
+        "id": "toolu_014ULtyNUYPoQ1YQCB5t9hMG",
+        "input": {
+          "sku_ids": [],
+          "store_id": "9ac254a5-14de-5638-b3b1-57fd8bdb204c"
+        },
+        "name": "get_inventory"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 597,
+      "output_tokens": 249
+    }
+  }
+}

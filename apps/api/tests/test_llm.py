@@ -113,6 +113,17 @@ async def test_replay_miss_is_loud(tmp_path: Path) -> None:
         await ReplayProvider(tmp_path).complete(_request())
 
 
+async def test_replay_with_fallback_records_the_miss_then_replays(tmp_path: Path) -> None:
+    live = FakeProvider()
+    live.push_text("fresh")
+    replay = ReplayProvider(tmp_path, fallback=RecordingProvider(live, tmp_path))
+    first = await replay.complete(_request())
+    assert first.text == "fresh" and replay.misses == 1
+    second = await replay.complete(_request())  # now served from the fixture, no live call
+    assert second.text == "fresh" and replay.misses == 1
+    assert len(live.requests) == 1
+
+
 async def test_fake_provider_records_requests_and_raises_when_empty() -> None:
     fake = FakeProvider()
     fake.push_text("a")

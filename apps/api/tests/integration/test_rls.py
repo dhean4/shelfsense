@@ -47,7 +47,7 @@ async def test_reading_another_tenants_store_by_id_is_404(client: AsyncClient) -
 async def test_sku_counts_and_category_filter(client: AsyncClient) -> None:
     a = await client.get("/v1/skus", headers=dev_headers(A, Role.reviewer))
     b = await client.get("/v1/skus", headers=dev_headers(B, Role.reviewer))
-    assert len(a.json()) == 25
+    assert len(a.json()) == 34
     assert len(b.json()) == 25
     dairy = await client.get(
         "/v1/skus", params={"category": "dairy"}, headers=dev_headers(A, Role.reviewer)
@@ -180,5 +180,5 @@ async def test_seed_is_idempotent(database: object) -> None:
     assert isinstance(database, Database)
     summary = await seed_database(database.owner_url)
     assert len(summary) == 2
-    assert "2 stores, 4 shelves, 25 skus" in summary[0]
+    assert "2 stores, 4 shelves, 34 skus" in summary[0]
     assert "1 stores, 2 shelves, 25 skus" in summary[1]

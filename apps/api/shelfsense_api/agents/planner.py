@@ -6,6 +6,7 @@ the loop (cost cap, step cap) and decide afterwards which actions need a human.
 """
 
 import json
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID
@@ -130,10 +131,24 @@ def _spend(responses: list[LLMResponse], settings: Settings) -> float:
     return sum(cost_usd(r.model, r.usage, prices) or 0.0 for r in responses)
 
 
+Executor = Callable[[ToolContext, str, dict[str, Any]], Awaitable[ToolExecution]]
+
+
 async def run_planner(
-    provider: LLMProvider, settings: Settings, ctx: ToolContext, inp: PlannerInput
+    provider: LLMProvider,
+    settings: Settings,
+    ctx: ToolContext,
+    inp: PlannerInput,
+    *,
+    executor: Executor | None = None,
+    gate: bool = True,
 ) -> PlannerResult:
-    """Run the loop under ``ctx`` (a tenant session), then apply review gating."""
+    """Run the loop under ``ctx`` (a tenant session), then apply review gating.
+
+    ``executor`` defaults to the database-backed :func:`execute`; the evals pass an
+    in-memory one and turn ``gate`` off because there are no action rows to gate.
+    """
+    run_tool = executor or execute
     tools = specs_for_role(inp.trigger_role)
     messages = [Message.user(_context_text(inp))]
     responses: list[LLMResponse] = []
@@ -170,7 +185,7 @@ async def run_planner(
             # action with the submission.
             others = [c for c in response.tool_calls if c.name != SUBMIT]
             for call in others:
-                executions.append(await execute(ctx, call.name, call.input))
+                executions.append(await run_tool(ctx, call.name, call.input))
             result = PlannerResult(
                 decisions=decisions,
                 responses=responses,
@@ -178,7 +193,8 @@ async def run_planner(
                 cost_usd=spent,
                 steps=step,
             )
-            await _gate_actions(ctx, inp, result, settings)
+            if gate:
+                await _gate_actions(ctx, inp, result, settings)
             return result
 
         if not response.tool_calls:
@@ -197,7 +213,7 @@ async def run_planner(
 
         results: list[ToolResultPart] = []
         for call in response.tool_calls:
-            execution = await execute(ctx, call.name, call.input)
+            execution = await run_tool(ctx, call.name, call.input)
             executions.append(execution)
             results.append(
                 ToolResultPart(

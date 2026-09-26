@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Ikeja Depot Shop\nShelf: Drinks Chiller (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | 771d0edb-f3a7-53c1-bbda-9111aed1809f | Coca-Cola \u2014 Coca-Cola 50cl PET | 3 | 1\n2 | 3d65d108-9bee-587d-89bf-d9399565c7d6 | Pepsi \u2014 Pepsi 50cl PET | 3 | 1\n3 | 298ff6a3-ff87-5ac6-8f3c-6a443f343b52 | Coca-Cola \u2014 Fanta Orange 50cl PET | 4 | 1\n4 | 6deb2ee1-f847-5cbb-b650-69e429f1ad66 | Coca-Cola \u2014 Sprite 50cl PET | 3 | 1\n5 | 85eaa58e-54b3-58dc-9e52-5cac71f4cc68 | ",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_001"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 16852,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgbBzjqk9UsD4MPBV4N",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"771d0edb-f3a7-53c1-bbda-9111aed1809f\",\"label\":\"Coca-Cola 50cl PET\",\"facings\":2,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.166,\"h\":0.36},\"confidence\":0.93},{\"sku_id\":\"298ff6a3-ff87-5ac6-8f3c-6a443f343b52\",\"label\":\"Fanta Orange 50cl PET\",\"facings\":4,\"region\":{\"x\":0.186,\"y\":0.073,\"w\":0.339,\"h\":0.36},\"confidence\":0.93},{\"sku_id\":\"6deb2ee1-f847-5cbb-b650-69e429f1ad66\",\"label\":\"Sprite 50cl PET\",\"facings\":2,\"region\":{\"x\":0.529,\"y\":0.073,\"w\":0.168,\"h\":0.36},\"confidence\":0.92},{\"sku_id\":\"85eaa58e-54b3-58dc-9e52-5cac71f4cc68\",\"label\":\"Bigi Cola 60cl\",\"facings\":4,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.941,\"h\":0.816},\"confidence\":0.88},{\"sku_id\":\"0f0fdd52-980f-5e8d-be9a-9a7b52737048\",\"label\":\"Chivita Orange 1L\",\"facings\":3,\"region\":{\"x\":0.100,\"y\":0.523,\"w\":0.168,\"h\":0.366},\"confidence\":0.9},{\"sku_id\":\"a26c22ba-a215-5851-88ab-5ee0e325da97\",\"label\":\"Five Alive Citrus 1L\",\"facings\":4,\"region\":{\"x\":0.358,\"y\":0.523,\"w\":0.339,\"h\":0.366},\"confidence\":0.9}],\"stock_outs\":[\"3d65d108-9bee-587d-89bf-d9399565c7d6\",\"0fe5841a-1779-5631-8373-71208cabe5fa\",\"213c5cb1-d553-50e5-a3db-47b52857ba5e\",\"95fced27-0534-5b27-b7c6-a84eb5588e6a\",\"56ff61d5-713b-5dc7-a2ed-154f38b29328\"],\"share_of_shelf\":[{\"sku_id\":\"771d0edb-f3a7-53c1-bbda-9111aed1809f\",\"percent\":10.5},{\"sku_id\":\"298ff6a3-ff87-5ac6-8f3c-6a443f343b52\",\"percent\":21.0},{\"sku_id\":\"6deb2ee1-f847-5cbb-b650-69e429f1ad66\",\"percent\":10.5},{\"sku_id\":\"85eaa58e-54b3-58dc-9e52-5cac71f4cc68\",\"percent\":21.0},{\"sku_id\":\"0f0fdd52-980f-5e8d-be9a-9a7b52737048\",\"percent\":15.8},{\"sku_id\":\"a26c22ba-a215-5851-88ab-5ee0e325da97\",\"percent\":21.0}],\"overall_confidence\":0.87,\"notes\":\"Clear, unoccluded planogram-style rendering; 19 total facings visible. Coca-Cola 50cl (2 vs 3), Sprite 50cl (2 vs 3) are under expected facings. Bigi Cola facings are split across both shelves (3 on top row, 1 at left of second row), so its bounding box is wide. Pepsi 50cl, Eva Water 75cl, Ragolis Water 75cl, Maltina 33cl Can and Amstel Malta 33cl Can are not visible anywhere on the chiller \u2014 recorded as stock-outs. Second shelf has empty space to the right where malt cans/water would sit.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 1588,
+      "input_tokens": 2053,
+      "output_tokens": 1516
+    }
+  }
+}

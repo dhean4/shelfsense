@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Ikeja Depot Shop\nShelf: Dairy Chiller (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | fe12b692-038b-580a-8b31-ca85e9b7931f | Peak \u2014 Peak Evaporated Milk 160g | 3 | 1\n2 | 49e24ab6-4804-5f85-9ec0-65a02401eec7 | Peak \u2014 Peak Powdered Milk 400g | 3 | 1\n3 | 7c33d189-d58d-548a-925e-929c713ac88b | Three Crowns \u2014 Three Crowns Evaporated Milk 160g | 4 | 1\n4 | 02cdf388-4b50-51ea-8d97-a57b4a733065 | Cowbell \u2014 Cowbell Milk Sachet 12g | 3 | 1\n5 | 86da5d60-",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_054"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 13004,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgob1BZdxHsXhScFKjc",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"fe12b692-038b-580a-8b31-ca85e9b7931f\",\"label\":\"Peak Evaporated Milk 160g\",\"facings\":3,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.253,\"h\":0.363},\"confidence\":0.93},{\"sku_id\":\"49e24ab6-4804-5f85-9ec0-65a02401eec7\",\"label\":\"Peak Powdered Milk 400g\",\"facings\":3,\"region\":{\"x\":0.273,\"y\":0.073,\"w\":0.252,\"h\":0.363},\"confidence\":0.93},{\"sku_id\":\"7c33d189-d58d-548a-925e-929c713ac88b\",\"label\":\"Three Crowns Evaporated Milk 160g\",\"facings\":4,\"region\":{\"x\":0.53,\"y\":0.073,\"w\":0.339,\"h\":0.363},\"confidence\":0.92},{\"sku_id\":\"02cdf388-4b50-51ea-8d97-a57b4a733065\",\"label\":\"Cowbell Milk Sachet 12g\",\"facings\":2,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.94,\"h\":0.813},\"confidence\":0.85},{\"sku_id\":\"86da5d60-8ade-551f-97b1-24f03f3f84fe\",\"label\":\"Dano Cool Cow Milk 400g\",\"facings\":2,\"region\":{\"x\":0.1,\"y\":0.523,\"w\":0.168,\"h\":0.363},\"confidence\":0.9},{\"sku_id\":\"b2ded22d-caa3-5fce-8c90-f2dd2580d4b0\",\"label\":\"Hollandia Yoghurt 1L\",\"facings\":4,\"region\":{\"x\":0.273,\"y\":0.523,\"w\":0.338,\"h\":0.363},\"confidence\":0.91}],\"stock_outs\":[],\"share_of_shelf\":[{\"sku_id\":\"fe12b692-038b-580a-8b31-ca85e9b7931f\",\"percent\":16.7},{\"sku_id\":\"49e24ab6-4804-5f85-9ec0-65a02401eec7\",\"percent\":16.7},{\"sku_id\":\"7c33d189-d58d-548a-925e-929c713ac88b\",\"percent\":22.2},{\"sku_id\":\"02cdf388-4b50-51ea-8d97-a57b4a733065\",\"percent\":11.1},{\"sku_id\":\"86da5d60-8ade-551f-97b1-24f03f3f84fe\",\"percent\":11.1},{\"sku_id\":\"b2ded22d-caa3-5fce-8c90-f2dd2580d4b0\",\"percent\":22.2}],\"overall_confidence\":0.87,\"notes\":\"Two-shelf chiller render; all six planogram SKUs present, none fully out of stock. Cowbell Milk Sachet 12g facings are split across both shelves (one at the far right of the top shelf, one at the far left of the bottom shelf), so its bounding box spans the whole image. Under-stocked versus planogram: Cowbell 2/3 and Dano Cool Cow 2/3. Right half of the bottom shelf is empty. Product labels are partly truncated by neighbouring facings, so name matching relies on visible brand text.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1767,
+      "output_tokens": 1285
+    }
+  }
+}

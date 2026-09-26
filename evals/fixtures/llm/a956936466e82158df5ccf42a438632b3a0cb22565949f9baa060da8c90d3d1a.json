@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Ikeja Depot Shop\nShelf: Drinks Chiller (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | 771d0edb-f3a7-53c1-bbda-9111aed1809f | Coca-Cola \u2014 Coca-Cola 50cl PET | 3 | 1\n2 | 3d65d108-9bee-587d-89bf-d9399565c7d6 | Pepsi \u2014 Pepsi 50cl PET | 3 | 1\n3 | 298ff6a3-ff87-5ac6-8f3c-6a443f343b52 | Coca-Cola \u2014 Fanta Orange 50cl PET | 4 | 1\n4 | 6deb2ee1-f847-5cbb-b650-69e429f1ad66 | Coca-Cola \u2014 Sprite 50cl PET | 3 | 1\n5 | 85eaa58e-54b3-58dc-9e52-5cac71f4cc68 | ",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_031"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 18408,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgiCZRKwunvAdNsjHMV",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"771d0edb-f3a7-53c1-bbda-9111aed1809f\",\"label\":\"Coca-Cola 50cl PET\",\"facings\":3,\"region\":{\"x\":0.015,\"y\":0.075,\"w\":0.14,\"h\":0.36},\"confidence\":0.93},{\"sku_id\":\"3d65d108-9bee-587d-89bf-d9399565c7d6\",\"label\":\"Pepsi 50cl PET\",\"facings\":3,\"region\":{\"x\":0.16,\"y\":0.075,\"w\":0.142,\"h\":0.36},\"confidence\":0.92},{\"sku_id\":\"298ff6a3-ff87-5ac6-8f3c-6a443f343b52\",\"label\":\"Fanta Orange 50cl PET\",\"facings\":4,\"region\":{\"x\":0.305,\"y\":0.075,\"w\":0.19,\"h\":0.36},\"confidence\":0.92},{\"sku_id\":\"6deb2ee1-f847-5cbb-b650-69e429f1ad66\",\"label\":\"Sprite 50cl PET\",\"facings\":3,\"region\":{\"x\":0.5,\"y\":0.075,\"w\":0.142,\"h\":0.36},\"confidence\":0.91},{\"sku_id\":\"85eaa58e-54b3-58dc-9e52-5cac71f4cc68\",\"label\":\"Bigi Cola 60cl\",\"facings\":3,\"region\":{\"x\":0.645,\"y\":0.075,\"w\":0.142,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":\"0fe5841a-1779-5631-8373-71208cabe5fa\",\"label\":\"Eva Water 75cl\",\"facings\":5,\"region\":{\"x\":0.015,\"y\":0.075,\"w\":0.975,\"h\":0.82},\"confidence\":0.85},{\"sku_id\":\"213c5cb1-d553-50e5-a3db-47b52857ba5e\",\"label\":\"Ragolis Water 75cl\",\"facings\":4,\"region\":{\"x\":0.065,\"y\":0.52,\"w\":0.19,\"h\":0.37},\"confidence\":0.88},{\"sku_id\":\"0f0fdd52-980f-5e8d-be9a-9a7b52737048\",\"label\":\"Chivita Orange 1L\",\"facings\":4,\"region\":{\"x\":0.26,\"y\":0.52,\"w\":0.19,\"h\":0.37},\"confidence\":0.87},{\"sku_id\":\"a26c22ba-a215-5851-88ab-5ee0e325da97\",\"label\":\"Five Alive Citrus 1L\",\"facings\":4,\"region\":{\"x\":0.45,\"y\":0.52,\"w\":0.19,\"h\":0.37},\"confidence\":0.88},{\"sku_id\":\"95fced27-0534-5b27-b7c6-a84eb5588e6a\",\"label\":\"Maltina 33cl Can\",\"facings\":3,\"region\":{\"x\":0.645,\"y\":0.52,\"w\":0.142,\"h\":0.37},\"confidence\":0.87},{\"sku_id\":\"56ff61d5-713b-5dc7-a2ed-154f38b29328\",\"label\":\"Amstel Malta 33cl Can\",\"facings\":3,\"region\":{\"x\":0.79,\"y\":0.52,\"w\":0.142,\"h\":0.37},\"confidence\":0.86}],\"stock_outs\":[],\"share_of_shelf\":[{\"sku_id\":\"771d0edb-f3a7-53c1-bbda-9111aed1809f\",\"percent\":7.7},{\"sku_id\":\"3d65d108-9bee-587d-89bf-d9399565c7d6\",\"percent\":7.7},{\"sku_id\":\"298ff6a3-ff87-5ac6-8f3c-6a443f343b52\",\"percent\":10.3},{\"sku_id\":\"6deb2ee1-f847-5cbb-b650-69e429f1ad66\",\"percent\":7.7},{\"sku_id\":\"85eaa58e-54b3-58dc-9e52-5cac71f4cc68\",\"percent\":7.7},{\"sku_id\":\"0fe5841a-1779-5631-8373-71208cabe5fa\",\"percent\":12.8},{\"sku_id\":\"213c5cb1-d553-50e5-a3db-47b52857ba5e\",\"percent\":10.3},{\"sku_id\":\"0f0fdd52-980f-5e8d-be9a-9a7b52737048\",\"percent\":10.3},{\"sku_id\":\"a26c22ba-a215-5851-88ab-5ee0e325da97\",\"percent\":10.3},{\"sku_id\":\"95fced27-0534-5b27-b7c6-a84eb5588e6a\",\"percent\":7.7},{\"sku_id\":\"56ff61d5-713b-5dc7-a2ed-154f38b29328\",\"percent\":7.7}],\"overall_confidence\":0.83,\"notes\":\"All 11 planogram SKUs present; no stock-outs. Eva Water 75cl has 4 facings on the top shelf plus 1 facing at the left of the lower shelf (5 total), so its bounding box spans both shelves. Ragolis and Chivita each show 4 facings (one above planogram expectation). Labels are partially truncated by narrow facing widths; far-right of the lower shelf is cut off at the image edge, which may hide additional units.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 2053,
+      "output_tokens": 1965
+    }
+  }
+}

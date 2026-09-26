@@ -117,6 +117,21 @@ Open the **Cold chain** page for live readings (SSE) and anomalies. Readings can
 posted over HTTP (`POST /v1/telemetry`). Rule: above 8°C for 15 minutes of device time.
 See [ADR-0006](docs/decisions/0006-telemetry-and-anomalies.md).
 
+### Evals
+
+```sh
+make eval            # replay recorded model responses over evals/data/golden.jsonl (offline, free)
+make eval-live       # real model (~$7)
+make eval-record     # real model, and save fixtures after a prompt/schema change
+uv run shelfsense-evals compare     # delta vs evals/baseline.json; exits 1 on a gated regression
+```
+
+100 synthetic cases (60 shelf photos, 40 planner decisions) scored on SKU precision/recall,
+stock-out F1, facings error, hallucination rate, decision accuracy, unneeded actions, cost
+and latency. CI replays them on every PR and posts the delta table as a comment. The
+**Evals** page shows the latest scoreboard. How to add your real photos:
+[evals/README.md](evals/README.md). See [ADR-0007](docs/decisions/0007-evals.md).
+
 ## Layout
 
 ```
@@ -140,8 +155,8 @@ docs/decisions/     ADRs
 | P3    | MCP tools, planner loop, tool-call logging, guardrails               | done   |
 | P4    | Human review queue + promote-to-golden-set                           | done   |
 | P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     | done   |
-| P6    | Evals package, dataset, scoring, CLI, CI PR comment                  | next   |
-| P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             |        |
+| P6    | Evals package, dataset, scoring, CLI, CI PR comment                  | done   |
+| P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             | next   |
 | P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        |        |
 | P9    | Deploy (Fly + Vercel), demo tenant, architecture docs, Loom script   |        |
 

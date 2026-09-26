@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store\nShelf: Household (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | dfca77cd-14f6-529c-870d-36ede59d003e | Unilever \u2014 Sunlight Detergent 900g | 3 | 1\n2 | 6a508091-fc9f-5618-9b5c-6ab322ec73f2 | Unilever \u2014 Omo Detergent 1kg | 3 | 1\n3 | 6790feda-b94a-5789-bd64-71ef10e5670a | Reckitt \u2014 Dettol Soap 110g | 4 | 1\n4 | fc1ae2ea-9019-5bc0-956b-29024b53206c | Unilever \u2014 Lux Soap 80g | 3 | 1\n5 | 490bdc83-8185-50bd-92d7-febac4f56df6 | Unile",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_045"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 11155,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgmfxH2M3mG7D5Dkt51",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"6a508091-fc9f-5618-9b5c-6ab322ec73f2\",\"label\":\"Unilever Omo Detergent 1kg\",\"facings\":4,\"region\":{\"x\":0.015,\"y\":0.074,\"w\":0.339,\"h\":0.363},\"confidence\":0.94},{\"sku_id\":\"6790feda-b94a-5789-bd64-71ef10e5670a\",\"label\":\"Reckitt Dettol Soap 110g\",\"facings\":5,\"region\":{\"x\":0.359,\"y\":0.074,\"w\":0.424,\"h\":0.363},\"confidence\":0.93},{\"sku_id\":\"fc1ae2ea-9019-5bc0-956b-29024b53206c\",\"label\":\"Unilever Lux Soap 80g\",\"facings\":3,\"region\":{\"x\":0.015,\"y\":0.074,\"w\":0.940,\"h\":0.812},\"confidence\":0.9},{\"sku_id\":\"490bdc83-8185-50bd-92d7-febac4f56df6\",\"label\":\"Unilever Close Up Toothpaste 140g\",\"facings\":2,\"region\":{\"x\":0.101,\"y\":0.523,\"w\":0.167,\"h\":0.363},\"confidence\":0.91}],\"stock_outs\":[\"dfca77cd-14f6-529c-870d-36ede59d003e\"],\"share_of_shelf\":[{\"sku_id\":\"6a508091-fc9f-5618-9b5c-6ab322ec73f2\",\"percent\":28.6},{\"sku_id\":\"6790feda-b94a-5789-bd64-71ef10e5670a\",\"percent\":35.7},{\"sku_id\":\"fc1ae2ea-9019-5bc0-956b-29024b53206c\",\"percent\":21.4},{\"sku_id\":\"490bdc83-8185-50bd-92d7-febac4f56df6\",\"percent\":14.3},{\"sku_id\":\"dfca77cd-14f6-529c-870d-36ede59d003e\",\"percent\":0}],\"overall_confidence\":0.87,\"notes\":\"Two shelves visible. Top shelf: 4 Omo Detergent 1kg, 5 Dettol Soap 110g, 2 Lux Soap 80g. Bottom shelf: 1 Lux Soap 80g and 2 Close Up Toothpaste 140g. Lux facings are split across both shelves, so its bounding box covers both regions. Sunlight Detergent 900g is not visible anywhere \u2014 stock-out. Dettol is over-faced (5 vs 4 expected); Close Up under minimum expectation at 2 of 3. Labels are small/truncated in the image, slight uncertainty on size variants.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1677,
+      "output_tokens": 1031
+    }
+  }
+}

@@ -91,6 +91,59 @@ jobs:
       - name: Fail if anything changed
         run: git diff --exit-code -- apps/api/openapi.json packages/shared/src/generated
 
+  evals:
+    name: Evals — replay golden set, post score delta
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - run: uv sync --frozen --python ${{ env.PYTHON_VERSION }}
+
+      # Replays committed fixtures: deterministic and free. A prompt or schema change
+      # produces fixture misses, which fail here until fixtures are re-recorded locally.
+      - name: Run evals (replay)
+        run: uv run shelfsense-evals run --provider replay --out /tmp/eval-current.json
+
+      - name: Compare against baseline
+        id: compare
+        continue-on-error: true
+        run: >
+          uv run shelfsense-evals compare /tmp/eval-current.json
+          --out-markdown /tmp/eval-comment.md
+
+      - name: Post or update the PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/eval-comment.md', 'utf8');
+            const marker = '<!-- shelfsense-eval-report -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const mine = comments.data.find(c => c.body && c.body.includes(marker));
+            if (mine) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Fail on gated regression
+        if: steps.compare.outcome == 'failure'
+        run: |
+          echo "A gated eval metric regressed beyond tolerance; see the PR comment." >&2
+          exit 1
+
   web:
     name: Web — lint, types, build
     runs-on: ubuntu-latest

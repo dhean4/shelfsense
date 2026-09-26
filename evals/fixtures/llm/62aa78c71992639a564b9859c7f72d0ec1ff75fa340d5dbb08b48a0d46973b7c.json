@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store\nShelf: Dry Goods (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | 7bc5c54c-91d4-545f-8a06-8fc4d571968c | Indomie \u2014 Indomie Chicken 70g | 3 | 1\n2 | f7d39f88-d160-5fd9-bbcb-65e5f11aae1f | Indomie \u2014 Indomie Onion Chicken 120g | 3 | 1\n3 | 6cbb55a2-bf0e-5bf0-915d-96a0132791cd | Golden Penny \u2014 Golden Penny Spaghetti 500g | 4 | 1\n4 | 830170dc-259b-52b1-b8e8-ca5cef48258d | Dangote \u2014 Dangote Spaghetti 500g | 3 | 1\n5 | 102a7dd0-057b-5d",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_044"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 11764,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgm9Vhtv4iUpmTuR8qT",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"7bc5c54c-91d4-545f-8a06-8fc4d571968c\",\"label\":\"Indomie Chicken 70g\",\"facings\":3,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.253,\"h\":0.36},\"confidence\":0.88},{\"sku_id\":\"6cbb55a2-bf0e-5bf0-915d-96a0132791cd\",\"label\":\"Golden Penny Spaghetti 500g\",\"facings\":4,\"region\":{\"x\":0.272,\"y\":0.073,\"w\":0.339,\"h\":0.36},\"confidence\":0.87},{\"sku_id\":\"102a7dd0-057b-5d0f-b205-0e0edcf16a7a\",\"label\":\"Golden Penny Semovita 1kg\",\"facings\":2,\"region\":{\"x\":0.615,\"y\":0.073,\"w\":0.168,\"h\":0.36},\"confidence\":0.82},{\"sku_id\":null,\"label\":\"Viju Milk Drink 500ml\",\"facings\":2,\"region\":{\"x\":0.788,\"y\":0.073,\"w\":0.168,\"h\":0.36},\"confidence\":0.8},{\"sku_id\":null,\"label\":\"Nasco Cornflakes 350g\",\"facings\":2,\"region\":{\"x\":0.015,\"y\":0.522,\"w\":0.167,\"h\":0.36},\"confidence\":0.78}],\"stock_outs\":[\"f7d39f88-d160-5fd9-bbcb-65e5f11aae1f\",\"830170dc-259b-52b1-b8e8-ca5cef48258d\"],\"share_of_shelf\":[{\"sku_id\":\"7bc5c54c-91d4-545f-8a06-8fc4d571968c\",\"percent\":23.1},{\"sku_id\":\"6cbb55a2-bf0e-5bf0-915d-96a0132791cd\",\"percent\":30.8},{\"sku_id\":\"102a7dd0-057b-5d0f-b205-0e0edcf16a7a\",\"percent\":15.4},{\"sku_id\":\"f7d39f88-d160-5fd9-bbcb-65e5f11aae1f\",\"percent\":0},{\"sku_id\":\"830170dc-259b-52b1-b8e8-ca5cef48258d\",\"percent\":0}],\"overall_confidence\":0.78,\"notes\":\"Labels are partly truncated at facing edges, so size/variant reads are inferred from visible text. Indomie Onion Chicken 120g and Dangote Spaghetti 500g are not visible anywhere on the shelf (stock-outs). Golden Penny Spaghetti is over-faced at 4 vs expected 4 (compliant); Semovita is short at 2 vs 3. Two non-planogram products present: Viju Milk Drink 500ml (2 facings) on the top shelf and Nasco Cornflakes 350g (2 facings) on the lower shelf. Lower shelf is largely empty.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1707,
+      "output_tokens": 1159
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Surulere Chill Store (store_id b259fe1b-7a8d-5ad8-9909-83050d9f8112)\nShelf: Beverages & Snacks\nAudit confidence: 0.94\nStock-outs: 2 of 4 planogram SKUs; compliance 50%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\n296c102c-db99-5971-bf42-b50f1b3d2cc9 | Gala Sausage Roll | 3 | 1 | 3 | ok\n5248dc8b-7efb-5d90-8f8f-fcd6a46ceb63 | Beloxxi Cream Crackers | 3 | 1 | 0 | out\n5ca0628e-271e-581c-82f5-535f22034094 | McVitie'",
+    "metadata": {
+      "agent": "planner",
+      "run": "4c396be3-51a4-5c07-8762-bbaa9b7d08c9",
+      "step": "2"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 7861,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRh56MCEKmw41HeCwZm5",
+    "stop_reason": "tool_use",
+    "text": "Two SKUs are out on shelf and both sit at or below reorder point. Ordering whole cases.",
+    "tool_calls": [
+      {
+        "id": "toolu_01HSxQ2U3Vyuqb2SvBpZMKCJ",
+        "input": {
+          "quantity": 12,
+          "reason": "Beloxxi Cream Crackers stocked out on shelf (0/3 facings); on_hand 3 <= reorder point 6. 1 case of 12 brings stock to 15 units (3 facings x 3 + ROP 6).",
+          "sku_id": "5248dc8b-7efb-5d90-8f8f-fcd6a46ceb63",
+          "store_id": "b259fe1b-7a8d-5ad8-9909-83050d9f8112"
+        },
+        "name": "create_reorder"
+      },
+      {
+        "id": "toolu_01WtbyjFwajvuEj3RMKuBEEF",
+        "input": {
+          "quantity": 24,
+          "reason": "McVitie's Digestive 250g stocked out on shelf (0/4 facings); on_hand 1 <= reorder point 6. 2 cases of 12 bring stock to 25 units, covering target of 18 (4 facings x 3 + ROP 6).",
+          "sku_id": "5ca0628e-271e-581c-82f5-535f22034094",
+          "store_id": "b259fe1b-7a8d-5ad8-9909-83050d9f8112"
+        },
+        "name": "create_reorder"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 1117,
+      "output_tokens": 726
+    }
+  }
+}

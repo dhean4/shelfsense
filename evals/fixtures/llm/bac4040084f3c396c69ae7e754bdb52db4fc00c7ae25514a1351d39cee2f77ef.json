@@ -1,0 +1,39 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store (store_id 74ff2e53-2bb9-57a4-9bdf-0834bd2a813a)\nShelf: Household\nAudit confidence: 0.49\nStock-outs: 2 of 5 planogram SKUs; compliance 60%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\ndfca77cd-14f6-529c-870d-36ede59d003e | Sunlight Detergent 900g | 3 | 1 | 3 | ok\n6a508091-fc9f-5618-9b5c-6ab322ec73f2 | Omo Detergent 1kg | 3 | 1 | 3 | ok\n6790feda-b94a-5789-bd64-71ef10e5670a | Dettol Soap 110g | 4",
+    "metadata": {
+      "agent": "planner",
+      "run": "2f77870e-1897-5239-98c6-908743697a42",
+      "step": "2"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 8483,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRh1xnhLNtRn6vxK2TQi",
+    "stop_reason": "tool_use",
+    "text": "Both stocked-out SKUs have backroom stock above their reorder points, so this is a refill, not an order.",
+    "tool_calls": [
+      {
+        "id": "toolu_01EooMdFxTMErjCkojc5HawE",
+        "input": {
+          "body": "Household shelf audit at Yaba Market Store (compliance 60%).\n\nEmpty slots:\n- Lux Soap 80g \u2013 0 of 3 facings. Backroom has 8 units. Put all 8 out (target is 9; it will be one unit short).\n- Close Up Toothpaste 140g \u2013 0 of 3 facings. Backroom has 9 units. Put 9 out to fill the slot.\n\nNo purchase order raised: both SKUs are still above their reorder point (6), so the shelf just needs restocking from the backroom today. Sunlight, Omo and Dettol slots are all correct.\n\nPlease note: the photo scored low confidence (0.49). When you refill, confirm the two slots really were empty and re-shoot the shelf. If stock in the backroom is lower than shown, tell us and we will order cases.",
+          "channel": "whatsapp",
+          "recipient_role": "manager",
+          "subject": "Yaba Market \u2013 Household shelf: 2 stock-outs, refill from backroom (no order needed)"
+        },
+        "name": "notify"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 1281,
+      "output_tokens": 590
+    }
+  }
+}

@@ -133,7 +133,8 @@ TENANTS: tuple[TenantSpec, ...] = (
                 ("Dry Goods", "Household"),
             ),
         ),
-        sku_range=(0, 25),
+        # Covers dairy through personal care so every one of its shelves has a planogram.
+        sku_range=(0, 34),
     ),
     TenantSpec(
         slug="surulere-chill",

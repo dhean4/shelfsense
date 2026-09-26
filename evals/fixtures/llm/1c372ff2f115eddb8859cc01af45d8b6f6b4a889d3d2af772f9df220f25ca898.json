@@ -1,0 +1,46 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Ikeja Depot Shop (store_id 9ac254a5-14de-5638-b3b1-57fd8bdb204c)\nShelf: Dairy Chiller\nAudit confidence: 0.88\nStock-outs: 1 of 6 planogram SKUs; compliance 83%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\nfe12b692-038b-580a-8b31-ca85e9b7931f | Peak Evaporated Milk 160g | 3 | 1 | 3 | ok\n49e24ab6-4804-5f85-9ec0-65a02401eec7 | Peak Powdered Milk 400g | 3 | 1 | 3 | ok\n7c33d189-d58d-548a-925e-929c713ac88b | Three Cro",
+    "metadata": {
+      "agent": "planner",
+      "run": "ca2b300b-f008-58e7-8041-890ce7ebf98f",
+      "step": "1"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 7409,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgqSjuKqVsb7nnupbeG",
+    "stop_reason": "tool_use",
+    "text": "I'll check inventory and act on the fridge fault.",
+    "tool_calls": [
+      {
+        "id": "toolu_01SXVDN8WDjoYWNH5oRXfuUt",
+        "input": {
+          "sku_ids": ["02cdf388-4b50-51ea-8d97-a57b4a733065"],
+          "store_id": "9ac254a5-14de-5638-b3b1-57fd8bdb204c"
+        },
+        "name": "get_inventory"
+      },
+      {
+        "id": "toolu_01AkePvweQSG8pnudjAALrod",
+        "input": {
+          "reason": "Cold-chain telemetry: dairy chiller above 8\u00b0C for 40 minutes, peak 11.2\u00b0C. Auditor also noted a fault. Dairy stock at risk of spoilage.",
+          "store_id": "9ac254a5-14de-5638-b3b1-57fd8bdb204c",
+          "urgency": "high"
+        },
+        "name": "dispatch_technician"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 1991,
+      "input_tokens": 635,
+      "output_tokens": 332
+    }
+  }
+}

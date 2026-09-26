@@ -11,16 +11,18 @@ license = { text = "MIT" }
 package = false
 
 [tool.uv.workspace]
-members = ["apps/api", "apps/simulator"]
+members = ["apps/api", "apps/simulator", "evals"]
 
 [tool.uv.sources]
 shelfsense-api = { workspace = true }
 shelfsense-simulator = { workspace = true }
+shelfsense-evals = { workspace = true }
 
 [dependency-groups]
 dev = [
     "shelfsense-api",
     "shelfsense-simulator",
+    "shelfsense-evals",
     "ruff==0.16.9",
     "mypy==2.3.1",
     "pytest==9.1.1",
@@ -40,7 +42,7 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["apps/api", "apps/simulator"]
+src = ["apps/api", "apps/simulator", "evals"]
 extend-exclude = ["apps/web", "packages", "node_modules"]
 
 [tool.ruff.lint]
@@ -100,7 +102,7 @@ strict = true
 explicit_package_bases = true
 
 [tool.pytest.ini_options]
-testpaths = ["apps/api/tests", "apps/simulator/tests"]
+testpaths = ["apps/api/tests", "apps/simulator/tests", "evals/tests"]
 # importlib mode: both members have a `tests` package; prepend mode would shadow one.
 addopts = "-q --strict-markers --strict-config --import-mode=importlib"
 asyncio_mode = "auto"

@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Surulere Chill Store\nShelf: Beverages & Snacks (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | 296c102c-db99-5971-bf42-b50f1b3d2cc9 | UAC Foods \u2014 Gala Sausage Roll | 3 | 1\n2 | 5248dc8b-7efb-5d90-8f8f-fcd6a46ceb63 | Beloxxi \u2014 Beloxxi Cream Crackers | 3 | 1\n3 | 5ca0628e-271e-581c-82f5-535f22034094 | McVitie's \u2014 McVitie's Digestive 250g | 4 | 1\n4 | 93fa7590-d4af-5a91-8a77-625041600649 | Cabin \u2014 Cabin Biscuit 200g | 3 | 1\nAudit the photo against ",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_035"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 7770,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgjQ9iDcK2LZ6pVKgdT",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"296c102c-db99-5971-bf42-b50f1b3d2cc9\",\"label\":\"UAC Foods Gala Sausage Roll\",\"facings\":3,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.253,\"h\":0.36},\"confidence\":0.93},{\"sku_id\":\"5248dc8b-7efb-5d90-8f8f-fcd6a46ceb63\",\"label\":\"Beloxxi Cream Crackers\",\"facings\":2,\"region\":{\"x\":0.273,\"y\":0.073,\"w\":0.166,\"h\":0.36},\"confidence\":0.91},{\"sku_id\":\"93fa7590-d4af-5a91-8a77-625041600649\",\"label\":\"Cabin Biscuit 200g\",\"facings\":3,\"region\":{\"x\":0.444,\"y\":0.073,\"w\":0.253,\"h\":0.36},\"confidence\":0.92}],\"stock_outs\":[\"5ca0628e-271e-581c-82f5-535f22034094\"],\"share_of_shelf\":[{\"sku_id\":\"296c102c-db99-5971-bf42-b50f1b3d2cc9\",\"percent\":37.5},{\"sku_id\":\"5248dc8b-7efb-5d90-8f8f-fcd6a46ceb63\",\"percent\":25.0},{\"sku_id\":\"93fa7590-d4af-5a91-8a77-625041600649\",\"percent\":37.5},{\"sku_id\":\"5ca0628e-271e-581c-82f5-535f22034094\",\"percent\":0}],\"overall_confidence\":0.86,\"notes\":\"Single shelf level visible; 8 facings total. McVitie's Digestive 250g not present \u2014 stock-out. Beloxxi under-stocked (2 of 3 expected). Labels are partially truncated on some facings but brand blocks are clear. Lower shelf area is empty in frame.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1642,
+      "output_tokens": 621
+    }
+  }
+}

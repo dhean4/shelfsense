@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 UV := uv run
 COMPOSE := docker compose
-PY_MEMBERS := apps/api apps/simulator
+PY_MEMBERS := apps/api apps/simulator evals
 
 .PHONY: help
 help: ## Show this help
@@ -121,7 +121,7 @@ typecheck: typecheck-py ## mypy --strict and tsc across the workspace
 typecheck-py: ## mypy --strict, one run per Python workspace member
 	@for m in $(PY_MEMBERS); do \
 		echo "mypy $$m"; \
-		(cd $$m && $(UV) mypy --config-file ../../pyproject.toml .) || exit 1; \
+		(cd $$m && $(UV) mypy --config-file $(CURDIR)/pyproject.toml .) || exit 1; \
 	done
 
 .PHONY: build
@@ -133,9 +133,28 @@ verify: lint typecheck test build ## Everything CI runs, locally
 	@echo "all checks passed"
 
 .PHONY: eval
-eval: ## Run the agent evals against the golden set
-	@echo "make eval: the evals package and runner arrive in P6." >&2
-	@exit 1
+eval: ## Replay recorded model responses over the golden set and print the scores (offline)
+	$(UV) shelfsense-evals run --provider replay
+	$(UV) shelfsense-evals compare --no-fail-on-regression
+	cp evals/results/latest.json apps/web/src/data/eval-latest.json
+
+.PHONY: eval-live
+eval-live: ## Run the golden set against the real model (needs ANTHROPIC_API_KEY, ~$$7)
+	$(UV) shelfsense-evals run --provider anthropic
+
+.PHONY: eval-record
+eval-record: ## Replay what is recorded, call the API only for missing fixtures and save them
+	$(UV) shelfsense-evals run --provider replay --record
+	cp evals/results/latest.json apps/web/src/data/eval-latest.json
+
+.PHONY: eval-rerecord
+eval-rerecord: ## Re-record every fixture live (after a prompt/schema change; ~$$7)
+	$(UV) shelfsense-evals run --provider anthropic --record
+	cp evals/results/latest.json apps/web/src/data/eval-latest.json
+
+.PHONY: eval-generate
+eval-generate: ## Regenerate the synthetic seed dataset (photos + JSONL)
+	$(UV) shelfsense-evals generate
 
 .PHONY: clean
 clean: ## Remove build artefacts and caches (not Docker volumes)

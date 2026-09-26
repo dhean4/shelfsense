@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store\nShelf: Household (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | dfca77cd-14f6-529c-870d-36ede59d003e | Unilever \u2014 Sunlight Detergent 900g | 3 | 1\n2 | 6a508091-fc9f-5618-9b5c-6ab322ec73f2 | Unilever \u2014 Omo Detergent 1kg | 3 | 1\n3 | 6790feda-b94a-5789-bd64-71ef10e5670a | Reckitt \u2014 Dettol Soap 110g | 4 | 1\n4 | fc1ae2ea-9019-5bc0-956b-29024b53206c | Unilever \u2014 Lux Soap 80g | 3 | 1\n5 | 490bdc83-8185-50bd-92d7-febac4f56df6 | Unile",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_009"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 12970,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgcuXr8x35GLwZJ5GwC",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"dfca77cd-14f6-529c-870d-36ede59d003e\",\"label\":\"Unilever Sunlight Detergent 900g\",\"facings\":4,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.339,\"h\":0.363},\"confidence\":0.93},{\"sku_id\":\"6a508091-fc9f-5618-9b5c-6ab322ec73f2\",\"label\":\"Unilever Omo Detergent 1kg\",\"facings\":3,\"region\":{\"x\":0.359,\"y\":0.073,\"w\":0.253,\"h\":0.363},\"confidence\":0.92},{\"sku_id\":\"6790feda-b94a-5789-bd64-71ef10e5670a\",\"label\":\"Reckitt Dettol Soap 110g\",\"facings\":5,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.941,\"h\":0.81},\"confidence\":0.88},{\"sku_id\":\"fc1ae2ea-9019-5bc0-956b-29024b53206c\",\"label\":\"Unilever Lux Soap 80g\",\"facings\":2,\"region\":{\"x\":0.101,\"y\":0.523,\"w\":0.166,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":\"490bdc83-8185-50bd-92d7-febac4f56df6\",\"label\":\"Unilever Close Up Toothpaste 140g\",\"facings\":2,\"region\":{\"x\":0.273,\"y\":0.523,\"w\":0.166,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":null,\"label\":\"Big Cola 1L\",\"facings\":2,\"region\":{\"x\":0.444,\"y\":0.523,\"w\":0.167,\"h\":0.36},\"confidence\":0.85},{\"sku_id\":null,\"label\":\"Lucozade Boost 50cl\",\"facings\":2,\"region\":{\"x\":0.617,\"y\":0.523,\"w\":0.168,\"h\":0.36},\"confidence\":0.83}],\"stock_outs\":[],\"share_of_shelf\":[{\"sku_id\":\"dfca77cd-14f6-529c-870d-36ede59d003e\",\"percent\":20},{\"sku_id\":\"6a508091-fc9f-5618-9b5c-6ab322ec73f2\",\"percent\":15},{\"sku_id\":\"6790feda-b94a-5789-bd64-71ef10e5670a\",\"percent\":25},{\"sku_id\":\"fc1ae2ea-9019-5bc0-956b-29024b53206c\",\"percent\":10},{\"sku_id\":\"490bdc83-8185-50bd-92d7-febac4f56df6\",\"percent\":10}],\"overall_confidence\":0.86,\"notes\":\"Two-shelf household bay. Dettol Soap 110g facings span both shelves (4 on top shelf right, 1 at bottom-left), so its bounding box covers both rows. Lux Soap and Close Up are each at 2 facings, below the expected 3. Two non-planogram beverage lines (Big Cola 1L x2, Lucozade Boost 50cl x2) occupy the lower shelf and should be removed or re-sited; they are counted in share-of-shelf denominator, which is why planogram SKUs sum to 80%. Labels are partially truncated in the image but brand/size are legible.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1677,
+      "output_tokens": 1243
+    }
+  }
+}

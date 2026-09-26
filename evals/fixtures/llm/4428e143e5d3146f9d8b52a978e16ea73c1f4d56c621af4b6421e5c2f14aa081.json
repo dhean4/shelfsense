@@ -1,0 +1,39 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store (store_id 74ff2e53-2bb9-57a4-9bdf-0834bd2a813a)\nShelf: Household\nAudit confidence: 0.35\nStock-outs: 0 of 5 planogram SKUs; compliance 100%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\ndfca77cd-14f6-529c-870d-36ede59d003e | Sunlight Detergent 900g | 3 | 1 | 3 | ok\n6a508091-fc9f-5618-9b5c-6ab322ec73f2 | Omo Detergent 1kg | 3 | 1 | 3 | ok\n6790feda-b94a-5789-bd64-71ef10e5670a | Dettol Soap 110g | ",
+    "metadata": {
+      "agent": "planner",
+      "run": "50f8b722-01d3-599f-a830-0b0017c65095",
+      "step": "1"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 6653,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRh4W4Bpdnv27apkU4gw",
+    "stop_reason": "tool_use",
+    "text": "",
+    "tool_calls": [
+      {
+        "id": "toolu_017Ak3wy4Yf3pSmvpStxqe1g",
+        "input": {
+          "body": "The Household shelf audit at Yaba Market Store came back at 0.35 confidence (flagged low_conf). On the face of it all 5 planogram SKUs are fully faced (100% compliance, no stock-outs, no unknown products), but the image quality is too poor to rely on. No orders or dispatches have been raised. Please have someone eyeball the Household shelf and retake the photo (good lighting, full shelf in frame, no obstructions). If the shelf is genuinely full, no action is needed.",
+          "channel": "whatsapp",
+          "recipient_role": "manager",
+          "subject": "Re-audit needed: Household shelf, Yaba Market Store (low photo confidence)"
+        },
+        "name": "notify"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 513,
+      "output_tokens": 482
+    }
+  }
+}

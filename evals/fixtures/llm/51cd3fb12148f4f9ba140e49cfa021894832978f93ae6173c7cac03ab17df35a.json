@@ -1,0 +1,28 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Surulere Chill Store\nShelf: Chiller (planogram v1)\nPlanogram slots (position | sku_id | product | expected facings | minimum):\n1 | 51b856b7-2c43-5c38-827a-02094bac2cf6 | Pepsi \u2014 Pepsi 50cl PET | 3 | 1\n2 | b6aaa98d-a3f2-5e50-a170-c2a5a8bc54ca | Coca-Cola \u2014 Fanta Orange 50cl PET | 3 | 1\n3 | 4ac0ebba-be45-51cd-afbb-97d6d3553c3f | Coca-Cola \u2014 Sprite 50cl PET | 4 | 1\n4 | a747e15d-49ff-50a4-81a8-8a5370defeb3 | Bigi \u2014 Bigi Cola 60cl | 3 | 1\n5 | 1412203f-87a8-5729-b5d1-63a55da7de55 | Eva \u2014 Eva Wa",
+    "metadata": {
+      "agent": "vision",
+      "attempt": "0",
+      "tag": "eval:syn_058"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are a retail shelf auditor for FMCG distributors in Lagos.\n\nYou receive one photo of a shelf or chiller and the planogram for that shelf: the list of\nSKUs that should be on it, with ids. Report ex"
+  },
+  "response": {
+    "latency_ms": 17265,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRgpYnknVD4k5aXsntQW",
+    "stop_reason": "end_turn",
+    "text": "{\"items\":[{\"sku_id\":\"51b856b7-2c43-5c38-827a-02094bac2cf6\",\"label\":\"Pepsi 50cl PET\",\"facings\":3,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.148,\"h\":0.36},\"confidence\":0.93},{\"sku_id\":\"b6aaa98d-a3f2-5e50-a170-c2a5a8bc54ca\",\"label\":\"Fanta Orange 50cl PET\",\"facings\":3,\"region\":{\"x\":0.167,\"y\":0.073,\"w\":0.148,\"h\":0.36},\"confidence\":0.92},{\"sku_id\":\"4ac0ebba-be45-51cd-afbb-97d6d3553c3f\",\"label\":\"Sprite 50cl PET\",\"facings\":5,\"region\":{\"x\":0.319,\"y\":0.073,\"w\":0.25,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":\"a747e15d-49ff-50a4-81a8-8a5370defeb3\",\"label\":\"Bigi Cola 60cl\",\"facings\":3,\"region\":{\"x\":0.573,\"y\":0.073,\"w\":0.148,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":\"1412203f-87a8-5729-b5d1-63a55da7de55\",\"label\":\"Eva Water 75cl\",\"facings\":3,\"region\":{\"x\":0.726,\"y\":0.073,\"w\":0.147,\"h\":0.36},\"confidence\":0.9},{\"sku_id\":\"d65c748d-519f-5d8c-ace5-32e6e3a0396b\",\"label\":\"Ragolis Water 75cl\",\"facings\":4,\"region\":{\"x\":0.015,\"y\":0.073,\"w\":0.96,\"h\":0.82},\"confidence\":0.82},{\"sku_id\":\"2752c002-03e5-5d60-991f-185a88d31b83\",\"label\":\"Chivita Orange 1L\",\"facings\":4,\"region\":{\"x\":0.117,\"y\":0.523,\"w\":0.197,\"h\":0.37},\"confidence\":0.89},{\"sku_id\":\"e709e2d5-d028-5c8f-9172-51b4914af9d1\",\"label\":\"Five Alive Citrus 1L\",\"facings\":4,\"region\":{\"x\":0.32,\"y\":0.523,\"w\":0.198,\"h\":0.37},\"confidence\":0.88},{\"sku_id\":\"743306a9-0e73-51cb-b5c0-d38b9be15be3\",\"label\":\"Maltina 33cl Can\",\"facings\":5,\"region\":{\"x\":0.524,\"y\":0.523,\"w\":0.248,\"h\":0.37},\"confidence\":0.88},{\"sku_id\":\"e52bdb6b-007e-5e6c-a022-6d02330c4f33\",\"label\":\"Amstel Malta 33cl Can\",\"facings\":3,\"region\":{\"x\":0.777,\"y\":0.523,\"w\":0.147,\"h\":0.37},\"confidence\":0.86}],\"stock_outs\":[],\"share_of_shelf\":[{\"sku_id\":\"51b856b7-2c43-5c38-827a-02094bac2cf6\",\"percent\":8.1},{\"sku_id\":\"b6aaa98d-a3f2-5e50-a170-c2a5a8bc54ca\",\"percent\":8.1},{\"sku_id\":\"4ac0ebba-be45-51cd-afbb-97d6d3553c3f\",\"percent\":13.5},{\"sku_id\":\"a747e15d-49ff-50a4-81a8-8a5370defeb3\",\"percent\":8.1},{\"sku_id\":\"1412203f-87a8-5729-b5d1-63a55da7de55\",\"percent\":8.1},{\"sku_id\":\"d65c748d-519f-5d8c-ace5-32e6e3a0396b\",\"percent\":10.8},{\"sku_id\":\"2752c002-03e5-5d60-991f-185a88d31b83\",\"percent\":10.8},{\"sku_id\":\"e709e2d5-d028-5c8f-9172-51b4914af9d1\",\"percent\":10.8},{\"sku_id\":\"743306a9-0e73-51cb-b5c0-d38b9be15be3\",\"percent\":13.5},{\"sku_id\":\"e52bdb6b-007e-5e6c-a022-6d02330c4f33\",\"percent\":8.1}],\"overall_confidence\":0.83,\"notes\":\"All 10 planogram SKUs present; no stock-outs. Ragolis Water facings wrap from the end of the top shelf (2) to the start of the bottom shelf (2), so its bounding box spans both rows. Sprite (5) and Maltina (5) exceed expected facings; Chivita and Five Alive show 4 vs 3 expected. Right edge of both shelves is cut off by the frame, so the last facing of Ragolis (top) and Amstel (bottom) may be partially truncated, and an extra hidden facing cannot be ruled out. Total visible facings counted: 37.\"}",
+    "tool_calls": [],
+    "usage": {
+      "cache_read_tokens": 1588,
+      "cache_write_tokens": 0,
+      "input_tokens": 1984,
+      "output_tokens": 1859
+    }
+  }
+}

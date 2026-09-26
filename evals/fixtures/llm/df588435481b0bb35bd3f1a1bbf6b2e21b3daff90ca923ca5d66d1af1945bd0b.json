@@ -1,0 +1,39 @@
+{
+  "request": {
+    "effort": "medium",
+    "last_user_text": "Store: Yaba Market Store (store_id 74ff2e53-2bb9-57a4-9bdf-0834bd2a813a)\nShelf: Dry Goods\nAudit confidence: 0.74\nStock-outs: 1 of 5 planogram SKUs; compliance 80%; planogram share of shelf 100%; unknown products seen: 0\nSlots (sku_id | product | expected | minimum | observed | status):\n7bc5c54c-91d4-545f-8a06-8fc4d571968c | Indomie Chicken 70g | 3 | 1 | 0 | out\nf7d39f88-d160-5fd9-bbcb-65e5f11aae1f | Indomie Onion Chicken 120g | 3 | 1 | 3 | ok\n6cbb55a2-bf0e-5bf0-915d-96a0132791cd | Golden Penny S",
+    "metadata": {
+      "agent": "planner",
+      "run": "d4377845-2a23-5d32-adfe-221c4a67d8ef",
+      "step": "3"
+    },
+    "model": "claude-opus-5",
+    "system_head": "You are the operations planner for an FMCG distributor in Lagos.\n\nYou receive the result of a shelf audit (what a photo showed against the planogram) and,\nwhen available, cold-chain telemetry for the "
+  },
+  "response": {
+    "latency_ms": 8587,
+    "model": "claude-opus-5",
+    "provider": "anthropic",
+    "request_id": "req_011CfRh53J9LhTEWr1CgMEdm",
+    "stop_reason": "tool_use",
+    "text": "",
+    "tool_calls": [
+      {
+        "id": "toolu_01CTsGiSpJfyXm5o3X29jwBD",
+        "input": {
+          "body": "Dry Goods audit (confidence 0.74, compliance 80%): Indomie Chicken 70g is stocked out on shelf AND store on_hand is 0, so there is nothing to refill with. I have proposed a reorder of 2 cases (24 units, ~NGN 6,000). The other 4 planogram SKUs are at full facings with backstock \u2014 no action needed. Please confirm the shelf gap when next on site, as audit confidence was moderate.",
+          "channel": "whatsapp",
+          "recipient_role": "manager",
+          "subject": "Yaba Market \u2014 Dry Goods: Indomie Chicken 70g out, no backstock"
+        },
+        "name": "notify"
+      }
+    ],
+    "usage": {
+      "cache_read_tokens": 1991,
+      "cache_write_tokens": 0,
+      "input_tokens": 1662,
+      "output_tokens": 560
+    }
+  }
+}

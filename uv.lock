@@ -6,6 +6,7 @@ requires-python = "==3.12.*"
 members = [
     "shelfsense",
     "shelfsense-api",
+    "shelfsense-evals",
     "shelfsense-simulator",
 ]
 
@@ -1165,6 +1166,7 @@ dev = [
     { name = "pyyaml" },
     { name = "ruff" },
     { name = "shelfsense-api" },
+    { name = "shelfsense-evals" },
     { name = "shelfsense-simulator" },
     { name = "testcontainers", extra = ["minio", "redis"] },
     { name = "types-aiobotocore", extra = ["s3"] },
@@ -1183,6 +1185,7 @@ dev = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", specifier = "==0.16.9" },
     { name = "shelfsense-api", editable = "apps/api" },
+    { name = "shelfsense-evals", editable = "evals" },
     { name = "shelfsense-simulator", editable = "apps/simulator" },
     { name = "testcontainers", extras = ["postgres", "minio", "redis"], specifier = ">=4.15" },
     { name = "types-aiobotocore", extras = ["s3"], specifier = ">=3.9" },
@@ -1228,6 +1231,23 @@ requires-dist = [
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.1,<3" },
     { name = "typer", specifier = ">=0.27,<1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54" },
+]
+
+[[package]]
+name = "shelfsense-evals"
+version = "0.1.0"
+source = { editable = "evals" }
+dependencies = [
+    { name = "rich" },
+    { name = "shelfsense-api" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "rich", specifier = ">=15.0" },
+    { name = "shelfsense-api", editable = "apps/api" },
+    { name = "typer", specifier = ">=0.27,<1" },
 ]
 
 [[package]]
