@@ -12,7 +12,17 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shelfsense_api.db import session_factory
-from shelfsense_api.models import Planogram, PlanogramSlot, Role, Shelf, Sku, Store, Tenant, User
+from shelfsense_api.models import (
+    InventoryLevel,
+    Planogram,
+    PlanogramSlot,
+    Role,
+    Shelf,
+    Sku,
+    Store,
+    Tenant,
+    User,
+)
 
 NAMESPACE = uuid.UUID("7f2b9a5e-3c41-4d6e-9b8a-5e1c2d3f4a5b")
 
@@ -239,6 +249,39 @@ async def _upsert_planogram(
     return len(sku_ids)
 
 
+async def _upsert_inventory(
+    session: AsyncSession,
+    tenant_id: uuid.UUID,
+    tenant_slug: str,
+    store_name: str,
+    store_id: uuid.UUID,
+    sku_ids: list[uuid.UUID],
+) -> None:
+    """Stock positions for every planogram SKU at the store. Deterministic and varied."""
+    for index, sku_id in enumerate(sku_ids):
+        # Roughly a third of SKUs sit at or below their reorder point.
+        on_hand = (index * 7) % 20
+        stmt = insert(InventoryLevel).values(
+            id=stable_id("inventory", tenant_slug, store_name, str(sku_id)),
+            tenant_id=tenant_id,
+            store_id=store_id,
+            sku_id=sku_id,
+            on_hand=on_hand,
+            reorder_point=6,
+            case_size=12,
+        )
+        await session.execute(
+            stmt.on_conflict_do_update(
+                index_elements=[InventoryLevel.id],
+                set_={
+                    "on_hand": stmt.excluded.on_hand,
+                    "reorder_point": stmt.excluded.reorder_point,
+                    "case_size": stmt.excluded.case_size,
+                },
+            )
+        )
+
+
 async def seed_database(dsn: str) -> list[str]:
     """Load everything. Returns human-readable summary lines including tenant ids."""
     summary: list[str] = []
@@ -289,6 +332,7 @@ async def seed_database(dsn: str) -> list[str]:
                         session, tenant_id, shelf_key, shelf_id, sku_ids
                     )
                     shelf_count += 1
+                    await _upsert_inventory(session, tenant_id, spec.slug, name, store_id, sku_ids)
             sku_total = sum(len(v) for v in skus.values())
             summary.append(
                 f"{spec.name} ({spec.slug}) tenant_id={tenant_id}: "

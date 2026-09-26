@@ -20,6 +20,9 @@ OPENAPI_TAGS = [
     {"name": "skus", "description": "The tenant's product catalogue."},
     {"name": "planograms", "description": "What each shelf should hold."},
     {"name": "photos", "description": "Shelf photo uploads and their extractions."},
+    {"name": "tools", "description": "Typed tools, callable directly or by the planner."},
+    {"name": "runs", "description": "Agent runs: tokens, cost, tool calls, decisions."},
+    {"name": "actions", "description": "What the planner decided; the review queue's rows."},
 ]
 
 

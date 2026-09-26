@@ -135,7 +135,12 @@ async def upload_photo(
     await session.refresh(photo, attribute_names=["created_at", "updated_at"])
     photo.extraction = None
     await queue.enqueue(
-        PROCESS_PHOTO, {"photo_id": str(photo.id), "tenant_id": str(principal.tenant_id)}
+        PROCESS_PHOTO,
+        {
+            "photo_id": str(photo.id),
+            "tenant_id": str(principal.tenant_id),
+            "trigger_role": principal.role.value,
+        },
     )
     return await _to_out(photo, store, settings)
 

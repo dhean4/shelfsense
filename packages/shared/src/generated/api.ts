@@ -44,6 +44,66 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/actions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Actions
+     * @description Actions, newest first, filterable by status, kind and store.
+     */
+    get: operations["list_actions_v1_actions_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/actions/{action_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read Action
+     * @description One action.
+     */
+    get: operations["read_action_v1_actions__action_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/extractions/{extraction_id}/plan": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Plan Extraction
+     * @description Queue a planner run over an existing extraction (it also runs automatically).
+     */
+    post: operations["plan_extraction_v1_extractions__extraction_id__plan_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/me": {
     parameters: {
       query?: never;
@@ -76,6 +136,46 @@ export interface paths {
      * @description One photo with its extraction once processing is done.
      */
     get: operations["read_photo_v1_photos__photo_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/runs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Runs
+     * @description Most recent runs first, optionally by kind or status.
+     */
+    get: operations["list_runs_v1_runs_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/runs/{run_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read Run
+     * @description One run with every tool call and action.
+     */
+    get: operations["read_run_v1_runs__run_id__get"];
     put?: never;
     post?: never;
     delete?: never;
@@ -244,10 +344,109 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/tools": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Tools
+     * @description Tools the caller's role may invoke, with their JSON Schemas.
+     */
+    get: operations["list_tools_v1_tools_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/tools/{name}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Run Tool
+     * @description Execute one tool under the caller's tenant and role. Logged like any planner call.
+     */
+    post: operations["run_tool_v1_tools__name__post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /**
+     * ActionKind
+     * @description What the planner can decide to do.
+     * @enum {string}
+     */
+    ActionKind: "reorder" | "dispatch" | "notify" | "escalate";
+    /**
+     * ActionOut
+     * @description A planner decision and its review state.
+     */
+    ActionOut: {
+      /** Confidence */
+      confidence: number | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Estimated Cost Kobo */
+      estimated_cost_kobo: number;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components["schemas"]["ActionKind"];
+      /** Payload */
+      payload: {
+        [key: string]: unknown;
+      };
+      /** Rationale */
+      rationale: string;
+      /** Requires Review */
+      requires_review: boolean;
+      /** Review Note */
+      review_note: string | null;
+      /** Review Reason */
+      review_reason: string | null;
+      /** Reviewed At */
+      reviewed_at: string | null;
+      /** Reviewed By */
+      reviewed_by: string | null;
+      /** Run Id */
+      run_id: string | null;
+      status: components["schemas"]["ActionStatus"];
+      /** Store Id */
+      store_id: string | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+    };
+    /**
+     * ActionStatus
+     * @description Lifecycle of a planner decision.
+     * @enum {string}
+     */
+    ActionStatus: "proposed" | "pending_review" | "approved" | "rejected" | "executed";
     /**
      * BBox
      * @description Region in normalised image coordinates: origin top-left, values in [0, 1].
@@ -552,6 +751,83 @@ export interface components {
      */
     Role: "owner" | "manager" | "field_agent" | "reviewer";
     /**
+     * RunOut
+     * @description An agent run with its tool calls and actions: the timeline the dashboard shows.
+     */
+    RunOut: {
+      /** Actions */
+      actions: components["schemas"]["ActionOut"][];
+      /** Attempts */
+      attempts: number;
+      /** Cache Read Tokens */
+      cache_read_tokens: number;
+      /** Cache Write Tokens */
+      cache_write_tokens: number;
+      /** Cost Usd */
+      cost_usd: number | null;
+      /** Error */
+      error: string | null;
+      /** Extraction Id */
+      extraction_id: string | null;
+      /** Finished At */
+      finished_at: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Input Tokens */
+      input_tokens: number;
+      /** Kind */
+      kind: string;
+      /** Latency Ms */
+      latency_ms: number;
+      /** Model */
+      model: string;
+      /** Output Tokens */
+      output_tokens: number;
+      /** Photo Id */
+      photo_id: string | null;
+      /** Provider */
+      provider: string;
+      /**
+       * Started At
+       * Format: date-time
+       */
+      started_at: string;
+      status: components["schemas"]["RunStatus"];
+      /** Summary */
+      summary: {
+        [key: string]: unknown;
+      } | null;
+      /** Tool Calls */
+      tool_calls: components["schemas"]["ToolCallOut"][];
+      /** Trigger Role */
+      trigger_role: string | null;
+    };
+    /**
+     * RunQueued
+     * @description Acknowledgement that a planner run was queued.
+     */
+    RunQueued: {
+      /**
+       * Extraction Id
+       * Format: uuid
+       */
+      extraction_id: string;
+      /**
+       * Queued
+       * @default true
+       */
+      queued: boolean;
+    };
+    /**
+     * RunStatus
+     * @description Lifecycle of an agent run.
+     * @enum {string}
+     */
+    RunStatus: "queued" | "running" | "succeeded" | "failed";
+    /**
      * ShareOfShelf
      * @description Share of visible facings held by one planogram SKU.
      */
@@ -760,6 +1036,70 @@ export interface components {
       /** Slug */
       slug: string;
     };
+    /**
+     * ToolCallOut
+     * @description One logged tool call.
+     */
+    ToolCallOut: {
+      /** Arguments */
+      arguments: {
+        [key: string]: unknown;
+      };
+      /** Caller Role */
+      caller_role: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Duration Ms */
+      duration_ms: number;
+      /** Error */
+      error: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Result */
+      result: {
+        [key: string]: unknown;
+      } | null;
+      /** Seq */
+      seq: number;
+      /** Tool Name */
+      tool_name: string;
+    };
+    /**
+     * ToolRunOut
+     * @description Result of a direct tool call.
+     */
+    ToolRunOut: {
+      /** Duration Ms */
+      duration_ms: number;
+      /** Error */
+      error: string | null;
+      /** Name */
+      name: string;
+      /** Result */
+      result: {
+        [key: string]: unknown;
+      } | null;
+    };
+    /**
+     * ToolSpecOut
+     * @description A tool the caller may invoke, with its JSON Schema.
+     */
+    ToolSpecOut: {
+      /** Description */
+      description: string;
+      /** Input Schema */
+      input_schema: {
+        [key: string]: unknown;
+      };
+      /** Name */
+      name: string;
+    };
     /** ValidationError */
     ValidationError: {
       /** Context */
@@ -831,6 +1171,174 @@ export interface operations {
       };
     };
   };
+  list_actions_v1_actions_get: {
+    parameters: {
+      query?: {
+        status?: components["schemas"]["ActionStatus"] | null;
+        kind?: components["schemas"]["ActionKind"] | null;
+        store_id?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ActionOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_action_v1_actions__action_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        action_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ActionOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  plan_extraction_v1_extractions__extraction_id__plan_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        extraction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunQueued"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   read_me_v1_me_get: {
     parameters: {
       query?: never;
@@ -887,6 +1395,115 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PhotoOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_runs_v1_runs_get: {
+    parameters: {
+      query?: {
+        kind?: string | null;
+        status?: components["schemas"]["RunStatus"] | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_run_v1_runs__run_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunOut"];
         };
       };
       /** @description Not authenticated */
@@ -1637,6 +2254,108 @@ export interface operations {
       };
       /** @description Already exists */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_tools_v1_tools_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ToolSpecOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  run_tool_v1_tools__name__post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          [key: string]: unknown;
+        };
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ToolRunOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
         headers: {
           [name: string]: unknown;
         };

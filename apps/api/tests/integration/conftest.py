@@ -9,7 +9,7 @@ import asyncio
 import os
 from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
@@ -109,6 +109,8 @@ def _point_settings_at_containers(
     monkeypatch.setenv("SHELFSENSE_MIGRATION_DATABASE_URL", database.owner_url)
     monkeypatch.setenv("SHELFSENSE_AUTH_MODE", "dev")
     monkeypatch.setenv("SHELFSENSE_REDIS_URL", redis_url)
+    # A fresh stream per test so a job chained by one test never leaks into the next.
+    monkeypatch.setenv("SHELFSENSE_JOB_STREAM", f"test:jobs:{uuid4().hex}")
     monkeypatch.setenv("SHELFSENSE_S3_ENDPOINT_URL", object_store.endpoint_url)
     monkeypatch.setenv("SHELFSENSE_S3_ACCESS_KEY", object_store.access_key)
     monkeypatch.setenv("SHELFSENSE_S3_SECRET_KEY", object_store.secret_key)

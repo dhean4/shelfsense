@@ -1,25 +1,33 @@
 #!/usr/bin/env node
 /**
- * ShelfSense MCP server.
+ * `shelfsense-mcp`: stdio MCP server bridging to a ShelfSense API.
  *
- * P3 implements the server with @modelcontextprotocol/sdk and exposes `get_inventory`,
- * `create_reorder`, `dispatch_technician`, `notify` and `geocode`, each backed by the API
- * and validated with the zod schemas from @shelfsense/shared. Until then the binary
- * refuses to start rather than pretending to serve tools.
+ * Environment:
+ *   SHELFSENSE_API_URL      default http://localhost:8000
+ *   SHELFSENSE_API_TOKEN    Clerk session JWT (production)
+ *   SHELFSENSE_DEV_TENANT / SHELFSENSE_DEV_ROLE / SHELFSENSE_DEV_USER (dev auth mode)
  */
 import { pathToFileURL } from "node:url";
 
-import { SHELFSENSE_SHARED_VERSION } from "@shelfsense/shared";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-export const MCP_TOOLS_STATUS = "not-implemented-until-P3" as const;
+import { authFromEnv, createBridgeServer } from "./server.js";
+
+export { authFromEnv, authHeaders, createBridgeServer } from "./server.js";
+export type { ApiAuth, BridgeOptions } from "./server.js";
+
+export async function main(env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  const server = createBridgeServer({
+    apiUrl: env.SHELFSENSE_API_URL ?? "http://localhost:8000",
+    auth: authFromEnv(env),
+  });
+  await server.connect(new StdioServerTransport());
+}
 
 const entrypoint = process.argv[1];
-const runAsBinary = entrypoint !== undefined && import.meta.url === pathToFileURL(entrypoint).href;
-
-if (runAsBinary) {
-  // TODO(P3): replace with the real MCP stdio server.
-  process.stderr.write(
-    `shelfsense-mcp: server arrives in P3 (shared contracts v${SHELFSENSE_SHARED_VERSION}).\n`,
-  );
-  process.exit(2);
+if (entrypoint !== undefined && import.meta.url === pathToFileURL(entrypoint).href) {
+  main().catch((error: unknown) => {
+    process.stderr.write(`shelfsense-mcp: ${String(error)}\n`);
+    process.exit(1);
+  });
 }

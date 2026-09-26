@@ -26,7 +26,33 @@ class ImagePart(BaseModel):
     data: bytes = Field(repr=False)
 
 
-Part = TextPart | ImagePart
+class ToolUsePart(BaseModel):
+    """The model asked for a tool (assistant turn)."""
+
+    type: Literal["tool_use"] = "tool_use"
+    id: str
+    name: str
+    input: dict[str, Any]
+
+
+class ToolResultPart(BaseModel):
+    """What a tool returned (user turn). ``content`` is JSON text or an error message."""
+
+    type: Literal["tool_result"] = "tool_result"
+    tool_use_id: str
+    content: str
+    is_error: bool = False
+
+
+Part = TextPart | ImagePart | ToolUsePart | ToolResultPart
+
+
+class ToolCall(BaseModel):
+    """A tool invocation the model asked for."""
+
+    id: str
+    name: str
+    input: dict[str, Any]
 
 
 class Message(BaseModel):
@@ -43,9 +69,16 @@ class Message(BaseModel):
         )
 
     @classmethod
-    def assistant(cls, text: str) -> "Message":
-        """Build an assistant turn holding text."""
-        return cls(role="assistant", parts=[TextPart(text=text)])
+    def assistant(cls, text: str, calls: list[ToolCall] | None = None) -> "Message":
+        """Build an assistant turn: optional text followed by its tool calls."""
+        parts: list[Part] = [TextPart(text=text)] if text else []
+        parts.extend(ToolUsePart(id=c.id, name=c.name, input=c.input) for c in calls or [])
+        return cls(role="assistant", parts=parts)
+
+    @classmethod
+    def tool_results(cls, results: list[ToolResultPart]) -> "Message":
+        """Build the user turn that answers every tool call of the previous turn at once."""
+        return cls(role="user", parts=list(results))
 
 
 class ToolSpec(BaseModel):
@@ -75,6 +108,16 @@ class LLMRequest(BaseModel):
 
         Used to key recorded fixtures, so it must not include anything volatile.
         """
+
+        def part(p: Part) -> dict[str, Any]:
+            if isinstance(p, ImagePart):
+                return {
+                    "type": "image",
+                    "media_type": p.media_type,
+                    "sha256": hashlib.sha256(p.data).hexdigest(),
+                }
+            return p.model_dump()
+
         canonical = {
             "model": self.model,
             "system": self.system,
@@ -83,20 +126,7 @@ class LLMRequest(BaseModel):
             "output_schema": self.output_schema,
             "tools": [t.model_dump() for t in self.tools],
             "messages": [
-                {
-                    "role": m.role,
-                    "parts": [
-                        {"type": "text", "text": p.text}
-                        if isinstance(p, TextPart)
-                        else {
-                            "type": "image",
-                            "media_type": p.media_type,
-                            "sha256": hashlib.sha256(p.data).hexdigest(),
-                        }
-                        for p in m.parts
-                    ],
-                }
-                for m in self.messages
+                {"role": m.role, "parts": [part(p) for p in m.parts]} for m in self.messages
             ],
         }
         blob = json.dumps(canonical, sort_keys=True, separators=(",", ":"))
@@ -110,14 +140,6 @@ class Usage(BaseModel):
     output_tokens: int = 0
     cache_read_tokens: int = 0
     cache_write_tokens: int = 0
-
-
-class ToolCall(BaseModel):
-    """A tool invocation the model asked for."""
-
-    id: str
-    name: str
-    input: dict[str, Any]
 
 
 class LLMResponse(BaseModel):

@@ -11,6 +11,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
+    Boolean,
     DateTime,
     Enum,
     Float,
@@ -21,10 +22,13 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
+
+from shelfsense_api.guardrails import ActionKind
 
 
 class Role(enum.StrEnum):
@@ -275,6 +279,19 @@ class AgentRun(TenantScoped, Base):
     trace_id: Mapped[str | None] = mapped_column(String(64))
     started_at: Mapped[datetime] = _created_at()
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Planner runs (P3): who triggered it, which extraction it acted on, what it decided.
+    trigger_role: Mapped[str | None] = mapped_column(String(32))
+    extraction_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("extractions.id", ondelete="SET NULL"), index=True
+    )
+    summary: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+
+    tool_calls: Mapped[list["ToolCallLog"]] = relationship(
+        back_populates="run", order_by="ToolCallLog.seq", cascade="all, delete-orphan"
+    )
+    actions: Mapped[list["Action"]] = relationship(
+        back_populates="run", order_by="Action.created_at"
+    )
 
 
 class Extraction(TenantScoped, Base):
@@ -295,7 +312,110 @@ class Extraction(TenantScoped, Base):
     created_at: Mapped[datetime] = _created_at()
 
     photo: Mapped[Photo] = relationship(back_populates="extraction")
-    run: Mapped[AgentRun] = relationship()
+    run: Mapped[AgentRun] = relationship(foreign_keys=[run_id])
+
+
+class ActionStatus(enum.StrEnum):
+    """Lifecycle of a planner decision."""
+
+    proposed = "proposed"
+    pending_review = "pending_review"
+    approved = "approved"
+    rejected = "rejected"
+    executed = "executed"
+
+
+ACTION_KIND_ENUM = Enum(
+    ActionKind, name="action_kind", values_callable=lambda e: [m.value for m in e]
+)
+ACTION_STATUS_ENUM = Enum(
+    ActionStatus, name="action_status", values_callable=lambda e: [m.value for m in e]
+)
+
+
+class InventoryLevel(TenantScoped, Base):
+    """Stock position of one SKU at one store."""
+
+    __tablename__ = "inventory_levels"
+    __table_args__ = (UniqueConstraint("store_id", "sku_id", name="uq_inventory_store_sku"),)
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("stores.id", ondelete="CASCADE"), index=True
+    )
+    sku_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("skus.id", ondelete="CASCADE"), index=True)
+    on_hand: Mapped[int] = mapped_column(Integer)
+    reorder_point: Mapped[int] = mapped_column(Integer)
+    case_size: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = _updated_at()
+
+
+class Action(TenantScoped, Base):
+    """Something the planner decided to do. Reviewed by humans when guardrails say so."""
+
+    __tablename__ = "actions"
+    __table_args__ = (Index("ix_actions_status_created", "status", "created_at"),)
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("agent_runs.id", ondelete="SET NULL"), index=True
+    )
+    store_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("stores.id", ondelete="SET NULL"), index=True
+    )
+    kind: Mapped[ActionKind] = mapped_column(ACTION_KIND_ENUM)
+    status: Mapped[ActionStatus] = mapped_column(ACTION_STATUS_ENUM)
+    requires_review: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    review_reason: Mapped[str | None] = mapped_column(Text)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    estimated_cost_kobo: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    confidence: Mapped[float | None] = mapped_column(Float)
+    rationale: Mapped[str] = mapped_column(Text)
+    reviewed_by: Mapped[str | None] = mapped_column(String(128))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created_at()
+    updated_at: Mapped[datetime] = _updated_at()
+
+    run: Mapped[AgentRun | None] = relationship(back_populates="actions")
+
+
+class ToolCallLog(TenantScoped, Base):
+    """Every tool invocation, from the planner or a direct HTTP/MCP call."""
+
+    __tablename__ = "tool_calls"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True
+    )
+    seq: Mapped[int] = mapped_column(Integer)
+    tool_name: Mapped[str] = mapped_column(String(64))
+    caller_role: Mapped[str] = mapped_column(String(32))
+    arguments: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    error: Mapped[str | None] = mapped_column(Text)
+    duration_ms: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = _created_at()
+
+    run: Mapped[AgentRun | None] = relationship(back_populates="tool_calls")
+
+
+class Notification(TenantScoped, Base):
+    """A message the system decided to send. Delivery channels are stubs until P9."""
+
+    __tablename__ = "notifications"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("agent_runs.id", ondelete="SET NULL"), index=True
+    )
+    channel: Mapped[str] = mapped_column(String(16))
+    recipient: Mapped[str] = mapped_column(String(320))
+    subject: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = _created_at()
 
 
 TENANT_TABLES: tuple[str, ...] = (
@@ -308,4 +428,8 @@ TENANT_TABLES: tuple[str, ...] = (
     "photos",
     "agent_runs",
     "extractions",
+    "inventory_levels",
+    "actions",
+    "tool_calls",
+    "notifications",
 )

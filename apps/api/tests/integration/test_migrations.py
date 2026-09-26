@@ -17,7 +17,7 @@ pytestmark = pytest.mark.integration
 async def test_head_revision_is_applied(database: Database) -> None:
     async with get_engine(database.owner_url).connect() as conn:
         version = await conn.scalar(text("SELECT version_num FROM alembic_version"))
-    assert version == "0002"
+    assert version == "0003"
 
 
 async def test_models_match_migrations(database: Database) -> None:

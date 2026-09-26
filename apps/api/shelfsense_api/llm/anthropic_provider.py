@@ -19,6 +19,8 @@ from shelfsense_api.llm.types import (
     LLMResponse,
     Message,
     ToolCall,
+    ToolResultPart,
+    ToolUsePart,
     Usage,
 )
 
@@ -37,6 +39,19 @@ def _content(message: Message) -> list[dict[str, Any]]:
                         "media_type": part.media_type,
                         "data": base64.standard_b64encode(part.data).decode("ascii"),
                     },
+                }
+            )
+        elif isinstance(part, ToolUsePart):
+            blocks.append(
+                {"type": "tool_use", "id": part.id, "name": part.name, "input": part.input}
+            )
+        elif isinstance(part, ToolResultPart):
+            blocks.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": part.tool_use_id,
+                    "content": part.content,
+                    "is_error": part.is_error,
                 }
             )
         else:

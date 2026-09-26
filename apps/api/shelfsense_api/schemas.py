@@ -1,13 +1,14 @@
 """Request and response bodies. These are the shapes the OpenAPI contract promises."""
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from shelfsense_api.agents.vision import ExtractionSummary, ShelfExtraction
-from shelfsense_api.models import PhotoStatus, Role
+from shelfsense_api.guardrails import ActionKind
+from shelfsense_api.models import ActionStatus, PhotoStatus, Role, RunStatus
 
 
 class ErrorResponse(BaseModel):
@@ -189,3 +190,91 @@ class PhotoOut(BaseModel):
     updated_at: datetime
     download_url: str = Field(description="Time-limited URL for the original image.")
     extraction: ExtractionOut | None
+
+
+# --- tools, runs, actions ---------------------------------------------------------------
+
+
+class ToolSpecOut(BaseModel):
+    """A tool the caller may invoke, with its JSON Schema."""
+
+    name: str
+    description: str
+    input_schema: dict[str, Any]
+
+
+class ToolRunOut(BaseModel):
+    """Result of a direct tool call."""
+
+    name: str
+    result: dict[str, Any] | None
+    error: str | None
+    duration_ms: int
+
+
+class ToolCallOut(_FromORM):
+    """One logged tool call."""
+
+    id: UUID
+    seq: int
+    tool_name: str
+    caller_role: str
+    arguments: dict[str, Any]
+    result: dict[str, Any] | None
+    error: str | None
+    duration_ms: int
+    created_at: datetime
+
+
+class ActionOut(_FromORM):
+    """A planner decision and its review state."""
+
+    id: UUID
+    run_id: UUID | None
+    store_id: UUID | None
+    kind: ActionKind
+    status: ActionStatus
+    requires_review: bool
+    review_reason: str | None
+    payload: dict[str, Any]
+    estimated_cost_kobo: int
+    confidence: float | None
+    rationale: str
+    reviewed_by: str | None
+    reviewed_at: datetime | None
+    review_note: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class RunOut(_FromORM):
+    """An agent run with its tool calls and actions: the timeline the dashboard shows."""
+
+    id: UUID
+    kind: str
+    status: RunStatus
+    trigger_role: str | None
+    photo_id: UUID | None
+    extraction_id: UUID | None
+    provider: str
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+    cache_write_tokens: int
+    cost_usd: float | None
+    latency_ms: int
+    attempts: int
+    error: str | None
+    summary: dict[str, Any] | None
+    started_at: datetime
+    finished_at: datetime | None
+    tool_calls: list[ToolCallOut]
+    actions: list[ActionOut]
+
+
+class RunQueued(BaseModel):
+    """Acknowledgement that a planner run was queued."""
+
+    extraction_id: UUID
+    queued: bool = True

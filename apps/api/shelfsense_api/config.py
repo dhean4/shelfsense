@@ -34,6 +34,9 @@ class Settings(BaseSettings):
         description="DSN for Alembic and the seed script: the schema owner, bypasses RLS.",
     )
     redis_url: str = "redis://localhost:6379/0"
+    job_stream: str = Field(
+        default="shelfsense:jobs", description="Redis stream for background jobs."
+    )
     mqtt_url: str = "mqtt://localhost:1883"
     readiness_timeout_seconds: float = Field(
         default=2.0, gt=0, description="Per-dependency timeout for /readyz probes."
@@ -70,6 +73,24 @@ class Settings(BaseSettings):
     vision_max_tokens: int = Field(default=8_000, ge=256)
     vision_max_repairs: int = Field(default=2, ge=0, le=5)
     vision_max_image_edge: int = Field(default=1568, ge=256)
+
+    # --- planner and guardrails ---------------------------------------------------------
+    planner_model: str = "claude-opus-5"
+    planner_effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
+    planner_max_tokens: int = Field(default=8_000, ge=256)
+    planner_max_steps: int = Field(default=8, ge=1, le=30, description="Model turns per run.")
+    planner_max_cost_usd: float = Field(
+        default=0.50, gt=0, description="Abort a run whose LLM spend exceeds this."
+    )
+    review_confidence_threshold: float = Field(
+        default=0.7, ge=0, le=1, description="Below this, every action needs human review."
+    )
+    review_cost_limit_kobo: int = Field(
+        default=500_000, ge=0, description="Actions costing more than this need review (₦5,000)."
+    )
+    dispatch_cost_kobo: int = Field(
+        default=1_500_000, ge=0, description="Assumed cost of a technician call-out (₦15,000)."
+    )
 
     # --- auth ----------------------------------------------------------------------
     auth_mode: AuthMode = Field(

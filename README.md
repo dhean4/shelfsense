@@ -65,6 +65,29 @@ a derived planogram compliance summary, and the run's tokens, cost and latency. 
 effort and provider are settings; tests replay recorded responses and never call the API.
 See [ADR-0003](docs/decisions/0003-llm-layer-and-jobs.md).
 
+### What happens next: the planner
+
+A finished extraction queues a planner run automatically. The planner reads inventory,
+proposes reorders, notifies managers, and may dispatch a technician, through typed tools
+that are logged call by call. Guardrails decide which actions a human must review
+(low confidence, high cost, or a kind the triggering role may not approve):
+
+```sh
+curl -s localhost:8000/v1/runs?kind=planner -H "X-Dev-Tenant: ..." -H "X-Dev-Role: manager"
+curl -s "localhost:8000/v1/actions?status=pending_review" -H ...
+curl -s localhost:8000/v1/tools -H ...                       # tools your role may call
+curl -s -X POST localhost:8000/v1/tools/get_inventory -H ... -d '{"store_id": "..."}'
+```
+
+The same tools are exposed to any MCP client by `packages/mcp-tools`:
+
+```sh
+pnpm --filter @shelfsense/mcp-tools build
+SHELFSENSE_DEV_TENANT=<tenant id> SHELFSENSE_DEV_ROLE=manager node packages/mcp-tools/dist/index.js
+```
+
+See [ADR-0004](docs/decisions/0004-planner-tools-and-guardrails.md).
+
 ## Layout
 
 ```
@@ -85,8 +108,8 @@ docs/decisions/     ADRs
 | P0    | Monorepo, tooling, Compose, CI skeleton, ADR-0001                    | done   |
 | P1    | Data model, migrations, RLS, seed; OpenAPI spec → generated TS types | done   |
 | P2    | Photo upload, job queue, vision agent, provider abstraction          | done   |
-| P3    | MCP tools, planner loop, tool-call logging, guardrails               | next   |
-| P4    | Human review queue + promote-to-golden-set                           |        |
+| P3    | MCP tools, planner loop, tool-call logging, guardrails               | done   |
+| P4    | Human review queue + promote-to-golden-set                           | next   |
 | P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     |        |
 | P6    | Evals package, dataset, scoring, CLI, CI PR comment                  |        |
 | P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             |        |
