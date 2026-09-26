@@ -66,7 +66,7 @@ class Settings(BaseSettings):
         default=2.0, gt=0, description="Per-dependency timeout for /readyz probes."
     )
 
-    # --- object storage (MinIO locally, any S3 in production) ------------------------
+    # --- object storage (RustFS locally, any S3 in production) ------------------------
     s3_endpoint_url: str = "http://localhost:9000"
     s3_region: str = "us-east-1"
     s3_access_key: str = "shelfsense"

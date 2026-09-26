@@ -93,7 +93,7 @@ async def check_redis(settings: Settings) -> None:
 
 Probe = Callable[[Settings], Awaitable[None]]
 
-# Name → probe. Later phases append MinIO and the MQTT broker here.
+# Name → probe. The object store and the MQTT broker are candidates for later.
 PROBES: dict[str, Probe] = {
     "postgres": check_postgres,
     "rls": check_rls_enforced,

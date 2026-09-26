@@ -32,7 +32,7 @@ flowchart LR
     G -->|hold| RQ[Review queue]
     ING -->|rule: > 8°C for 15 min| AN[(Anomalies)] --> Q
     API --- PG[(Postgres 16<br/>pgvector · BRIN)]
-    API --- S3[(MinIO / S3)]
+    API --- S3[(S3 (RustFS locally))]
     MCP[MCP server] -->|/v1/tools| API
   end
 
@@ -60,7 +60,7 @@ model calls (tests and evals need none).
 
 ```sh
 make install     # uv sync + pnpm install
-make dev         # postgres :5433, redis :6379, minio :9000, mqtt :1883   (make dev-full adds Langfuse :3001)
+make dev         # postgres :5433, redis :6379, s3 :9000, mqtt :1883   (make dev-full adds Langfuse :3001)
 make migrate     # alembic upgrade head
 make seed        # 2 tenants, 3 stores, 6 shelves, 59 SKUs, planograms, inventory, devices
 make api         # FastAPI on :8000        make worker    # agents        make ingest   # MQTT

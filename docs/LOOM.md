@@ -16,7 +16,7 @@ Show the README architecture diagram for five seconds.
 Phone-sized window at `/upload`. Pick _Ikeja Depot Shop · Dairy Chiller_, choose
 `dairy_two_stockouts.png` (or a real photo), Upload.
 
-"That's the whole field-agent job. The API stored the photo in MinIO, wrote a row under
+"That's the whole field-agent job. The API stored the photo in object storage, wrote a row under
 row-level security, and queued a job."
 
 ## 1:30 — The vision agent, live (60 s)

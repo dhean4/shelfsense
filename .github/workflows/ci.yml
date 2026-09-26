@@ -74,9 +74,7 @@ jobs:
 
       - run: uv sync --frozen --python ${{ env.PYTHON_VERSION }}
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
 
       - uses: actions/setup-node@v6
         with:
@@ -150,9 +148,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
 
       - uses: actions/setup-node@v6
         with:

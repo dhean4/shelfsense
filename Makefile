@@ -22,9 +22,9 @@ install: ## Install Python (uv) and Node (pnpm) dependencies
 	pnpm install
 
 .PHONY: dev
-dev: .env ## Start core infra: postgres, redis, minio, mosquitto
+dev: .env ## Start core infra: postgres, redis, s3 (RustFS), mosquitto
 	$(COMPOSE) up -d --wait
-	@echo "postgres :$${POSTGRES_PORT:-5433}  redis :$${REDIS_PORT:-6379}  minio :$${MINIO_PORT:-9000}  mqtt :$${MQTT_PORT:-1883}"
+	@echo "postgres :$${POSTGRES_PORT:-5433}  redis :$${REDIS_PORT:-6379}  s3 :$${S3_PORT:-9000}  mqtt :$${MQTT_PORT:-1883}"
 
 .PHONY: dev-full
 dev-full: .env ## Core infra plus Langfuse v3 + ClickHouse (observability profile)

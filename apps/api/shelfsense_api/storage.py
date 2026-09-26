@@ -1,4 +1,4 @@
-"""Photo object storage on any S3-compatible service (MinIO locally)."""
+"""Photo object storage on any S3-compatible service (RustFS locally, ADR-0010)."""
 
 from typing import Any
 

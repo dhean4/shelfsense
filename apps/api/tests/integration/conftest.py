@@ -7,6 +7,9 @@ session-scoped test loop never sees a connection bound to another loop.
 
 import asyncio
 import os
+import time
+import urllib.error
+import urllib.request
 from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from uuid import UUID, uuid4
@@ -15,9 +18,9 @@ import asyncpg
 import pytest
 from alembic import command
 from httpx import ASGITransport, AsyncClient
-from testcontainers.community.minio import MinioContainer
 from testcontainers.community.postgres import PostgresContainer
 from testcontainers.community.redis import RedisContainer
+from testcontainers.core.container import DockerContainer
 
 from shelfsense_api.cli import alembic_config
 from shelfsense_api.config import Settings, get_settings
@@ -82,15 +85,35 @@ class ObjectStore:
     secret_key: str
 
 
+def _wait_http(url: str, timeout: float = 60.0) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=2) as response:
+                if response.status == 200:
+                    return
+        except (urllib.error.URLError, OSError):
+            pass
+        time.sleep(0.5)
+    raise RuntimeError(f"{url} did not become healthy in {timeout}s")
+
+
 @pytest.fixture(scope="session")
 def object_store() -> Iterator[ObjectStore]:
-    # Same images as docker-compose.yml, so nothing extra is pulled.
-    with MinioContainer(image="minio/minio:latest") as minio:
-        host, port = minio.get_container_host_ip(), minio.get_exposed_port(9000)
+    # Same image as docker-compose.yml (RustFS, ADR-0010), so nothing extra is pulled.
+    container = (
+        DockerContainer("rustfs/rustfs:latest")
+        .with_env("RUSTFS_ACCESS_KEY", "shelfsense")
+        .with_env("RUSTFS_SECRET_KEY", "shelfsense-dev-secret")
+        .with_exposed_ports(9000)
+    )
+    with container:
+        host, port = container.get_container_host_ip(), container.get_exposed_port(9000)
+        _wait_http(f"http://{host}:{port}/health")
         yield ObjectStore(
             endpoint_url=f"http://{host}:{port}",
-            access_key=minio.access_key,
-            secret_key=minio.secret_key,
+            access_key="shelfsense",
+            secret_key="shelfsense-dev-secret",
         )
 
 
