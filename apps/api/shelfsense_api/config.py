@@ -47,6 +47,15 @@ class Settings(BaseSettings):
         description="Telemetry topics: <prefix>/<tenant slug>/telemetry/<device>",
     )
 
+    # --- observability -------------------------------------------------------------------
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: str | None = None
+    langfuse_host: str = "http://localhost:3001"
+    release: str | None = Field(default=None, description="Git SHA or version tag, for traces.")
+    metrics_port: int | None = Field(
+        default=None, description="Worker/ingester processes serve Prometheus metrics here."
+    )
+
     # --- cold chain -----------------------------------------------------------------
     fridge_max_temp_c: float = Field(default=8.0, description="Above this is an excursion.")
     fridge_excursion_minutes: int = Field(

@@ -61,6 +61,11 @@ def get_provider(settings: Settings) -> LLMProvider:
             from shelfsense_api.llm.replay import RecordingProvider
 
             provider = RecordingProvider(provider, fixtures)
+    from shelfsense_api.llm.pricing import load_prices
+    from shelfsense_api.llm.traced import TracedProvider
+
+    # Every call, whatever the backend, becomes a generation span and a set of metrics.
+    provider = TracedProvider(provider, load_prices(settings.llm_pricing_json))
     _providers[key] = provider
     return provider
 

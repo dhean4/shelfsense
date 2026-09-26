@@ -1,16 +1,20 @@
 """FastAPI application factory."""
 
-from collections.abc import AsyncIterator
+import time
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from shelfsense_api import __version__
 from shelfsense_api.config import get_settings
 from shelfsense_api.db import dispose_engines
 from shelfsense_api.health import check_rls_enforced
 from shelfsense_api.health import router as health_router
+from shelfsense_api.observability import HTTP_REQUESTS, configure_tracing, flush
 from shelfsense_api.routes import ALL_ROUTERS
 
 OPENAPI_TAGS = [
@@ -26,22 +30,38 @@ OPENAPI_TAGS = [
     {"name": "actions", "description": "What the planner decided; the review queue's rows."},
     {"name": "review", "description": "Human review: decide actions, label extractions, promote."},
     {"name": "telemetry", "description": "Devices, readings, anomalies and the live stream."},
+    {"name": "usage", "description": "Cost, tokens and latency of agent runs over time."},
 ]
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    """Refuse to serve with a role that bypasses RLS; release pools on shutdown."""
+    """Refuse to serve with a role that bypasses RLS; release pools and traces on shutdown."""
     settings = get_settings()
     if settings.env != "test":
         # Fail fast: a superuser connection would silently disable tenant isolation.
         await check_rls_enforced(settings)
     yield
+    flush()
     await dispose_engines()
+
+
+async def _http_metrics(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    started = time.perf_counter()
+    response = await call_next(request)
+    route = request.scope.get("route")
+    template = getattr(route, "path", request.url.path)
+    HTTP_REQUESTS.labels(request.method, template, str(response.status_code)).observe(
+        time.perf_counter() - started
+    )
+    return response
 
 
 def create_app() -> FastAPI:
     """Build the application. Kept as a factory so tests get a fresh instance."""
+    settings = get_settings()
     app = FastAPI(
         title="ShelfSense API",
         version=__version__,
@@ -55,14 +75,24 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=get_settings().cors_origins,
+        allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.middleware("http")(_http_metrics)
     app.include_router(health_router)
     for router in ALL_ROUTERS:
         app.include_router(router)
+
+    @app.get("/metrics", include_in_schema=False)
+    def metrics() -> Response:
+        """Prometheus exposition (a plain route: a mount would redirect to a slash)."""
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    if configure_tracing(settings) is not None:
+        # HTTP spans join the Langfuse traces; agent and tool spans nest under them.
+        FastAPIInstrumentor.instrument_app(app, excluded_urls="healthz,readyz,metrics")
     return app
 
 

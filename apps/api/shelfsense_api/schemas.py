@@ -280,6 +280,10 @@ class RunOut(_FromORM):
     finished_at: datetime | None
     tool_calls: list[ToolCallOut]
     actions: list[ActionOut]
+    trace_id: str | None = None
+    trace_url: str | None = Field(
+        default=None, description="Deep link into Langfuse, when configured."
+    )
 
 
 class RunQueued(BaseModel):
@@ -416,6 +420,56 @@ class IngestOut(BaseModel):
     accepted: int
     unknown_devices: list[str]
     anomalies_opened: list[UUID]
+
+
+class UsageTotals(BaseModel):
+    """Whole-window totals."""
+
+    runs: int
+    succeeded: int
+    failed: int
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+    cost_usd: float
+    p50_latency_ms: float
+    p95_latency_ms: float
+
+
+class UsageBucket(BaseModel):
+    """One group (a day or a model) for one run kind."""
+
+    key: str
+    kind: str
+    runs: int
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float
+    p95_latency_ms: float
+
+
+class UsageRun(BaseModel):
+    """A run in the top-N by cost."""
+
+    id: UUID
+    kind: str
+    status: RunStatus
+    model: str
+    cost_usd: float
+    latency_ms: int
+    input_tokens: int
+    output_tokens: int
+    started_at: datetime
+
+
+class UsageOut(BaseModel):
+    """Cost and latency report for the dashboard."""
+
+    days: int
+    totals: UsageTotals
+    by_day: list[UsageBucket]
+    by_model: list[UsageBucket]
+    top_runs: list[UsageRun]
 
 
 class GoldenCaseOut(_FromORM):

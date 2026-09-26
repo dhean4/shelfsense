@@ -132,6 +132,21 @@ and latency. CI replays them on every PR and posts the delta table as a comment.
 **Evals** page shows the latest scoreboard. How to add your real photos:
 [evals/README.md](evals/README.md). See [ADR-0007](docs/decisions/0007-evals.md).
 
+### Observability
+
+```sh
+make dev-full                     # Langfuse on :3001 (bootstrapped keys pk-lf-/sk-lf-shelfsense-dev)
+# in .env:
+SHELFSENSE_LANGFUSE_PUBLIC_KEY=pk-lf-shelfsense-dev
+SHELFSENSE_LANGFUSE_SECRET_KEY=sk-lf-shelfsense-dev
+SHELFSENSE_METRICS_PORT=9101      # worker / ingester expose Prometheus metrics here
+curl localhost:8000/metrics       # API metrics (tokens, cost, runs, jobs, tools, HTTP latency)
+```
+
+Every job is a trace with agent, generation (model, tokens, cost) and tool observations;
+the run page links to it. The **Costs** page aggregates spend, tokens and p50/p95 latency
+per day and per model from the stored runs. See [ADR-0008](docs/decisions/0008-observability.md).
+
 ## Layout
 
 ```
@@ -156,8 +171,8 @@ docs/decisions/     ADRs
 | P4    | Human review queue + promote-to-golden-set                           | done   |
 | P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     | done   |
 | P6    | Evals package, dataset, scoring, CLI, CI PR comment                  | done   |
-| P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             | next   |
-| P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        |        |
+| P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             | done   |
+| P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        | next   |
 | P9    | Deploy (Fly + Vercel), demo tenant, architecture docs, Loom script   |        |
 
 Definition of done per phase: tests green, `make verify` clean, docs updated, conventional

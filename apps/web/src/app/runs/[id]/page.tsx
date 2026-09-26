@@ -48,6 +48,19 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           value={`${(run.latency_ms / 1000).toFixed(1)}s over ${String(run.attempts)} call(s)`}
         />
       </div>
+      {run.trace_url ? (
+        <p className="text-sm">
+          <a
+            href={run.trace_url}
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2"
+          >
+            Open trace in Langfuse
+          </a>
+          <span className="ml-2 font-mono text-xs text-muted-foreground">{run.trace_id}</span>
+        </p>
+      ) : null}
       {run.error ? (
         <p className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
           {run.error}

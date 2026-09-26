@@ -35,6 +35,7 @@ from shelfsense_api.llm import LLMProvider, LLMRequest, LLMResponse, Message
 from shelfsense_api.llm.pricing import cost_usd, load_prices
 from shelfsense_api.llm.types import ToolResultPart
 from shelfsense_api.models import Action, ActionStatus
+from shelfsense_api.observability import ACTIONS
 from shelfsense_api.pii import scrub
 
 SYSTEM_PROMPT = """You are the operations planner for an FMCG distributor in Lagos.
@@ -268,9 +269,11 @@ async def _gate_actions(
         action.review_reason = decision.reason
         if decision.required:
             action.status = ActionStatus.pending_review
+            ACTIONS.labels(action.kind.value, action.status.value).inc()
             result.actions_for_review.append(action.id)
         else:
             action.status = ActionStatus.approved
+            ACTIONS.labels(action.kind.value, action.status.value).inc()
             result.actions_auto_approved.append(action.id)
     await ctx.session.flush()
 

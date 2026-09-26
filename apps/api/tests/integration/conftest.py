@@ -140,6 +140,7 @@ async def bucket(object_store: ObjectStore) -> Settings:
 def fake_llm() -> FakeProvider:
     """The FakeProvider the worker will use, cleared for this test."""
     provider = get_provider(get_settings())
+    provider = getattr(provider, "inner", provider)  # unwrap the tracing layer
     assert isinstance(provider, FakeProvider)
     provider.queue.clear()
     provider.requests.clear()

@@ -1,7 +1,9 @@
 """Background jobs. Handlers take a JSON payload and run under the tenant's RLS context."""
 
+import functools
 import json
 import logging
+from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
@@ -40,8 +42,9 @@ from shelfsense_api.models import (
     Store,
     TelemetryReading,
 )
+from shelfsense_api.observability import AGENT_RUNS, current_trace_id, observation
 from shelfsense_api.planogram_context import load_shelf_bundle
-from shelfsense_api.queue import JobQueue
+from shelfsense_api.queue import Handler, JobQueue
 from shelfsense_api.storage import PhotoStore
 
 log = logging.getLogger(__name__)
@@ -105,6 +108,21 @@ def _totals(responses: tuple[LLMResponse, ...], settings: Settings) -> dict[str,
     }
 
 
+def traced_job(name: str) -> Callable[[Handler], Handler]:
+    """Run a job handler inside an agent-level observation carrying its payload."""
+
+    def decorate(fn: Handler) -> Handler:
+        @functools.wraps(fn)
+        async def wrapper(payload: dict[str, Any]) -> None:
+            with observation(name, as_type="agent", input=payload):
+                await fn(payload)
+
+        return wrapper
+
+    return decorate
+
+
+@traced_job("job.process_photo")
 async def process_photo(payload: dict[str, Any]) -> None:
     """Extract one photo. Payload: ``{"photo_id": ..., "tenant_id": ...}``.
 
@@ -186,6 +204,7 @@ async def process_photo(payload: dict[str, Any]) -> None:
     )
 
 
+@traced_job("job.plan_actions")
 async def plan_actions(payload: dict[str, Any]) -> None:
     """Run the planner over an extraction.
 
@@ -274,6 +293,7 @@ async def plan_actions(payload: dict[str, Any]) -> None:
         run.summary = json.loads(PlannerRunSummary.from_result(result).as_json())
 
 
+@traced_job("job.plan_anomaly")
 async def plan_anomaly(payload: dict[str, Any]) -> None:
     """Run the planner for an open cold-chain anomaly. Payload: ``{"anomaly_id", "tenant_id"}``."""
     settings = get_settings()
@@ -361,6 +381,8 @@ def _finish(run: AgentRun, status: RunStatus, totals: dict[str, Any], error: str
     run.status = status
     run.error = error
     run.finished_at = datetime.now(UTC)
+    run.trace_id = run.trace_id or current_trace_id()
+    AGENT_RUNS.labels(run.kind, status.value).inc()
     for key, value in totals.items():
         if value is not None or key == "cost_usd":
             setattr(run, key, value)

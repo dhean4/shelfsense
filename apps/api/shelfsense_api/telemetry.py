@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shelfsense_api.config import Settings
 from shelfsense_api.db import get_engine
 from shelfsense_api.models import Anomaly, AnomalyStatus, Device, DeviceKind, TelemetryReading
+from shelfsense_api.observability import ANOMALIES
 
 TEMP_EXCURSION = "temp_excursion"
 
@@ -165,6 +166,7 @@ async def _apply_rule(
         open_anomaly.peak_temperature_c = peak
         if latest.temperature_c <= settings.fridge_max_temp_c:
             open_anomaly.status = AnomalyStatus.resolved
+            ANOMALIES.labels("resolved").inc()
             open_anomaly.ended_at = latest.recorded_at
             result.events.append(
                 TelemetryEvent(
@@ -195,6 +197,7 @@ async def _apply_rule(
     session.add(anomaly)
     await session.flush()
     result.opened_anomalies.append(anomaly.id)
+    ANOMALIES.labels("opened").inc()
     result.events.append(
         TelemetryEvent(
             "anomaly_opened",

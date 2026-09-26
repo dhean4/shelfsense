@@ -1573,6 +1573,29 @@
             "title": "Tool Calls",
             "type": "array"
           },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "trace_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deep link into Langfuse, when configured.",
+            "title": "Trace Url"
+          },
           "trigger_role": {
             "anyOf": [
               {
@@ -2110,6 +2133,195 @@
         },
         "required": ["name", "description", "input_schema"],
         "title": "ToolSpecOut",
+        "type": "object"
+      },
+      "UsageBucket": {
+        "description": "One group (a day or a model) for one run kind.",
+        "properties": {
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "p95_latency_ms": {
+            "title": "P95 Latency Ms",
+            "type": "number"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "runs",
+          "input_tokens",
+          "output_tokens",
+          "cost_usd",
+          "p95_latency_ms"
+        ],
+        "title": "UsageBucket",
+        "type": "object"
+      },
+      "UsageOut": {
+        "description": "Cost and latency report for the dashboard.",
+        "properties": {
+          "by_day": {
+            "items": {
+              "$ref": "#/components/schemas/UsageBucket"
+            },
+            "title": "By Day",
+            "type": "array"
+          },
+          "by_model": {
+            "items": {
+              "$ref": "#/components/schemas/UsageBucket"
+            },
+            "title": "By Model",
+            "type": "array"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "top_runs": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRun"
+            },
+            "title": "Top Runs",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/UsageTotals"
+          }
+        },
+        "required": ["days", "totals", "by_day", "by_model", "top_runs"],
+        "title": "UsageOut",
+        "type": "object"
+      },
+      "UsageRun": {
+        "description": "A run in the top-N by cost.",
+        "properties": {
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "model",
+          "cost_usd",
+          "latency_ms",
+          "input_tokens",
+          "output_tokens",
+          "started_at"
+        ],
+        "title": "UsageRun",
+        "type": "object"
+      },
+      "UsageTotals": {
+        "description": "Whole-window totals.",
+        "properties": {
+          "cache_read_tokens": {
+            "title": "Cache Read Tokens",
+            "type": "integer"
+          },
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "p50_latency_ms": {
+            "title": "P50 Latency Ms",
+            "type": "number"
+          },
+          "p95_latency_ms": {
+            "title": "P95 Latency Ms",
+            "type": "number"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          },
+          "succeeded": {
+            "title": "Succeeded",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "runs",
+          "succeeded",
+          "failed",
+          "input_tokens",
+          "output_tokens",
+          "cache_read_tokens",
+          "cost_usd",
+          "p50_latency_ms",
+          "p95_latency_ms"
+        ],
+        "title": "UsageTotals",
         "type": "object"
       },
       "ValidationError": {
@@ -4740,6 +4952,70 @@
         "summary": "Run Tool",
         "tags": ["tools"]
       }
+    },
+    "/v1/usage": {
+      "get": {
+        "description": "Aggregates over the last ``days`` days of runs, by day+kind and by model.",
+        "operationId": "usage_v1_usage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 7,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Usage",
+        "tags": ["usage"]
+      }
     }
   },
   "tags": [
@@ -4790,6 +5066,10 @@
     {
       "description": "Devices, readings, anomalies and the live stream.",
       "name": "telemetry"
+    },
+    {
+      "description": "Cost, tokens and latency of agent runs over time.",
+      "name": "usage"
     }
   ]
 }

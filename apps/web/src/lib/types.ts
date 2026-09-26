@@ -21,6 +21,8 @@ export type MeOut = Schemas["MeOut"];
 export type Role = Schemas["Role"];
 export type PhotoOut = Schemas["PhotoOut"];
 export type DeviceOut = Schemas["DeviceOut"];
+export type UsageOut = Schemas["UsageOut"];
+export type UsageBucket = Schemas["UsageBucket"];
 export type AnomalyOut = Schemas["AnomalyOut"];
 export type ReadingOut = Schemas["ReadingOut"];
 

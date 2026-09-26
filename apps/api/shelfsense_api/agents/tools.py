@@ -31,6 +31,7 @@ from shelfsense_api.models import (
     ToolCallLog,
     User,
 )
+from shelfsense_api.observability import TOOL_CALLS, observation
 
 # --- context ----------------------------------------------------------------------------
 
@@ -398,19 +399,22 @@ async def execute(ctx: ToolContext, name: str, arguments: dict[str, Any]) -> Too
     result: dict[str, Any] | None = None
     error: str | None = None
     tool = REGISTRY.get(name)
-    if tool is None or name not in tools_for_role(ctx.role):
-        error = f"tool {name!r} is not available to role {ctx.role!r}"
-    elif tool.handler is None:
-        error = f"tool {name!r} is handled by the planner, not executed"
-    else:
-        try:
-            parsed = tool.input_model.model_validate(arguments)
-            output = await tool.handler(ctx, parsed)
-            result = json.loads(output.model_dump_json())
-        except ValidationError as exc:
-            error = f"invalid arguments: {exc.errors()[:3]}"
-        except ToolError as exc:
-            error = str(exc)
+    with observation(f"tool.{name}", as_type="tool", input=arguments) as span:
+        if tool is None or name not in tools_for_role(ctx.role):
+            error = f"tool {name!r} is not available to role {ctx.role!r}"
+        elif tool.handler is None:
+            error = f"tool {name!r} is handled by the planner, not executed"
+        else:
+            try:
+                parsed = tool.input_model.model_validate(arguments)
+                output = await tool.handler(ctx, parsed)
+                result = json.loads(output.model_dump_json())
+            except ValidationError as exc:
+                error = f"invalid arguments: {exc.errors()[:3]}"
+            except ToolError as exc:
+                error = str(exc)
+        span.update(output=result if error is None else {"error": error})
+    TOOL_CALLS.labels(name, "error" if error else "ok").inc()
     duration_ms = int((time.perf_counter() - started) * 1000)
     ctx.session.add(
         ToolCallLog(

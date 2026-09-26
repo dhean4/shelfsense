@@ -16,6 +16,8 @@ from typing import Any
 import redis.asyncio as aioredis
 from redis.exceptions import ResponseError
 
+from shelfsense_api.observability import JOBS
+
 log = logging.getLogger(__name__)
 
 Handler = Callable[[dict[str, Any]], Awaitable[None]]
@@ -114,8 +116,10 @@ class JobQueue:
             await handler(job.payload)
         except Exception as exc:
             log.exception("job %s failed (attempt %d)", job.name, job.attempts + 1)
+            JOBS.labels(job.name, "error").inc()
             await self._retry_or_dead_letter(job, repr(exc))
             return
+        JOBS.labels(job.name, "ok").inc()
         await self._redis.xack(self._stream, self._group, job.message_id)
 
     async def _retry_or_dead_letter(self, job: Job, error: str) -> None:
@@ -130,6 +134,7 @@ class JobQueue:
         )
 
     async def _dead_letter(self, job: Job, error: str, attempts: int | None = None) -> None:
+        JOBS.labels(job.name, "dead").inc()
         await self._redis.xack(self._stream, self._group, job.message_id)
         await self._redis.xadd(
             self._dead,

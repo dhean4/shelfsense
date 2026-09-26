@@ -12,6 +12,7 @@ const NAV = [
   { href: "/photos", label: "Photos" },
   { href: "/telemetry", label: "Cold chain" },
   { href: "/evals", label: "Evals" },
+  { href: "/costs", label: "Costs" },
 ] as const;
 
 async function ClerkControls() {

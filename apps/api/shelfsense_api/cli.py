@@ -67,14 +67,22 @@ def seed(
 
 
 @app.command()
-def worker(consumer: str = typer.Option("worker-1", help="Consumer name in the group.")) -> None:
+def worker(
+    consumer: str = typer.Option("worker-1", help="Consumer name in the group."),
+    metrics_port: int | None = typer.Option(None, help="Serve Prometheus metrics on this port."),
+) -> None:
     """Run the background job worker until SIGINT/SIGTERM."""
     import signal
 
     from shelfsense_api.jobs import get_queue
+    from shelfsense_api.observability import configure_tracing, flush, start_metrics_server
+
+    settings = get_settings()
+    configure_tracing(settings)
+    start_metrics_server(metrics_port or settings.metrics_port)
 
     async def _main() -> None:
-        queue = get_queue(get_settings())
+        queue = get_queue(settings)
         stop = asyncio.Event()
         loop = asyncio.get_running_loop()
         for sig in (signal.SIGINT, signal.SIGTERM):
@@ -84,26 +92,36 @@ def worker(consumer: str = typer.Option("worker-1", help="Consumer name in the g
             await queue.run(consumer, stop=stop)
         finally:
             await queue.close()
+            flush()
 
     asyncio.run(_main())
 
 
 @app.command()
-def ingest() -> None:
+def ingest(
+    metrics_port: int | None = typer.Option(None, help="Serve Prometheus metrics on this port."),
+) -> None:
     """Subscribe to MQTT telemetry and ingest it until SIGINT/SIGTERM."""
     import logging
     import signal
 
     from shelfsense_api.mqtt_ingest import run_ingest
+    from shelfsense_api.observability import configure_tracing, flush, start_metrics_server
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    settings = get_settings()
+    configure_tracing(settings)
+    start_metrics_server(metrics_port or settings.metrics_port)
 
     async def _main() -> None:
         stop = asyncio.Event()
         loop = asyncio.get_running_loop()
         for sig in (signal.SIGINT, signal.SIGTERM):
             loop.add_signal_handler(sig, stop.set)
-        await run_ingest(get_settings(), stop=stop)
+        try:
+            await run_ingest(settings, stop=stop)
+        finally:
+            flush()
 
     asyncio.run(_main())
 
@@ -112,15 +130,20 @@ def ingest() -> None:
 def process_jobs(limit: int = typer.Option(10, min=1)) -> None:
     """Handle up to LIMIT queued jobs inline, then exit (useful without a worker)."""
     from shelfsense_api.jobs import get_queue
+    from shelfsense_api.observability import configure_tracing, flush
+
+    settings = get_settings()
+    configure_tracing(settings)
 
     async def _main() -> int:
-        queue = get_queue(get_settings())
+        queue = get_queue(settings)
         handled = 0
         try:
             while handled < limit and await queue.process_one():
                 handled += 1
         finally:
             await queue.close()
+            flush()
         return handled
 
     typer.echo(f"processed {asyncio.run(_main())} job(s)")

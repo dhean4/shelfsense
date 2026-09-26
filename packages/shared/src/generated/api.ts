@@ -648,6 +648,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/usage": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Usage
+     * @description Aggregates over the last ``days`` days of runs, by day+kind and by model.
+     */
+    get: operations["usage_v1_usage_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1385,6 +1405,13 @@ export interface components {
       } | null;
       /** Tool Calls */
       tool_calls: components["schemas"]["ToolCallOut"][];
+      /** Trace Id */
+      trace_id?: string | null;
+      /**
+       * Trace Url
+       * @description Deep link into Langfuse, when configured.
+       */
+      trace_url?: string | null;
       /** Trigger Role */
       trigger_role: string | null;
     };
@@ -1682,6 +1709,94 @@ export interface components {
       };
       /** Name */
       name: string;
+    };
+    /**
+     * UsageBucket
+     * @description One group (a day or a model) for one run kind.
+     */
+    UsageBucket: {
+      /** Cost Usd */
+      cost_usd: number;
+      /** Input Tokens */
+      input_tokens: number;
+      /** Key */
+      key: string;
+      /** Kind */
+      kind: string;
+      /** Output Tokens */
+      output_tokens: number;
+      /** P95 Latency Ms */
+      p95_latency_ms: number;
+      /** Runs */
+      runs: number;
+    };
+    /**
+     * UsageOut
+     * @description Cost and latency report for the dashboard.
+     */
+    UsageOut: {
+      /** By Day */
+      by_day: components["schemas"]["UsageBucket"][];
+      /** By Model */
+      by_model: components["schemas"]["UsageBucket"][];
+      /** Days */
+      days: number;
+      /** Top Runs */
+      top_runs: components["schemas"]["UsageRun"][];
+      totals: components["schemas"]["UsageTotals"];
+    };
+    /**
+     * UsageRun
+     * @description A run in the top-N by cost.
+     */
+    UsageRun: {
+      /** Cost Usd */
+      cost_usd: number;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Input Tokens */
+      input_tokens: number;
+      /** Kind */
+      kind: string;
+      /** Latency Ms */
+      latency_ms: number;
+      /** Model */
+      model: string;
+      /** Output Tokens */
+      output_tokens: number;
+      /**
+       * Started At
+       * Format: date-time
+       */
+      started_at: string;
+      status: components["schemas"]["RunStatus"];
+    };
+    /**
+     * UsageTotals
+     * @description Whole-window totals.
+     */
+    UsageTotals: {
+      /** Cache Read Tokens */
+      cache_read_tokens: number;
+      /** Cost Usd */
+      cost_usd: number;
+      /** Failed */
+      failed: number;
+      /** Input Tokens */
+      input_tokens: number;
+      /** Output Tokens */
+      output_tokens: number;
+      /** P50 Latency Ms */
+      p50_latency_ms: number;
+      /** P95 Latency Ms */
+      p95_latency_ms: number;
+      /** Runs */
+      runs: number;
+      /** Succeeded */
+      succeeded: number;
     };
     /** ValidationError */
     ValidationError: {
@@ -3685,6 +3800,55 @@ export interface operations {
       };
       /** @description Not found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  usage_v1_usage_get: {
+    parameters: {
+      query?: {
+        days?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UsageOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
         headers: {
           [name: string]: unknown;
         };
