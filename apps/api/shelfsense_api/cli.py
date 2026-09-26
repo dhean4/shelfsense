@@ -197,6 +197,25 @@ def record_fixtures(
     asyncio.run(_main())
 
 
+@app.command()
+def demo(
+    photos: Path = typer.Option(API_ROOT / "tests" / "fixtures" / "photos"),
+    telemetry_minutes: int = typer.Option(
+        60, min=0, help="Simulated minutes of telemetry to load."
+    ),
+) -> None:
+    """Load demo activity for the seeded tenants: photos queued for audit and an hour of telemetry.
+
+    Idempotent enough for a demo: photos are re-uploaded (new rows) each run, telemetry is
+    appended. Run `make worker` (or `process-jobs`) afterwards to see the agents work.
+    """
+    from shelfsense_api.demo import load_demo
+
+    summary = asyncio.run(load_demo(get_settings(), photos, telemetry_minutes))
+    for line in summary:
+        typer.echo(line)
+
+
 @app.command("export-openapi")
 def export_openapi(
     output: Path = typer.Option(OPENAPI_JSON, help="Where to write the generated document."),

@@ -49,12 +49,19 @@ export async function apiGet<T>(path: string): Promise<T> {
   return JSON.parse(text) as T;
 }
 
-/** Like apiGet but returns null on 401/403 so pages can render an access notice. */
+/**
+ * Like apiGet but returns null when the caller is not allowed (401/403) or the API cannot
+ * be reached at all, so pages render a notice instead of a 500. Other API errors still throw.
+ */
 export async function apiGetOrNull<T>(path: string): Promise<T | null> {
   try {
     return await apiGet<T>(path);
   } catch (error) {
     if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+      return null;
+    }
+    if (!(error instanceof ApiError)) {
+      console.error(`API unreachable at ${API_URL}: ${String(error)}`);
       return null;
     }
     throw error;

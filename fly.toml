@@ -1,0 +1,57 @@
+# Fly.io: one image, three process groups. See docs/DEPLOYMENT.md for the full runbook.
+app = "shelfsense-api"
+primary_region = "jnb" # Johannesburg: closest Fly region to Lagos
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+
+[env]
+  SHELFSENSE_ENV = "production"
+  SHELFSENSE_AUTH_MODE = "jwks"
+  SHELFSENSE_S3_REGION = "auto"
+  SHELFSENSE_S3_BUCKET_PHOTOS = "shelfsense-photos"
+  SHELFSENSE_CORS_ORIGINS = '["https://shelfsense.vercel.app"]'
+  SHELFSENSE_LANGFUSE_HOST = "https://cloud.langfuse.com"
+  SHELFSENSE_METRICS_PORT = "9101"
+
+[processes]
+  api = "uvicorn shelfsense_api.main:app --host 0.0.0.0 --port 8000 --app-dir apps/api"
+  worker = "shelfsense-api worker --consumer fly-worker"
+  ingest = "shelfsense-api ingest"
+
+[deploy]
+  # Migrations run once per deploy, before the new machines take traffic.
+  release_command = "shelfsense-api migrate"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["api"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+[checks]
+  [checks.health]
+    port = 8000
+    type = "http"
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "20s"
+    path = "/readyz"
+    processes = ["api"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  processes = ["api", "worker", "ingest"]
+
+[metrics]
+  port = 9101
+  path = "/metrics"
+  processes = ["worker", "ingest"]

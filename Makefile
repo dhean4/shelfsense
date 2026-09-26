@@ -79,6 +79,14 @@ synth-photos: ## Render the synthetic shelf photos + ground truth into apps/api/
 record-fixtures: ## Call the real model on the synthetic photos and save responses (needs ANTHROPIC_API_KEY, costs money)
 	$(UV) shelfsense-api record-fixtures
 
+.PHONY: demo
+demo: ## Queue the synthetic photos and an hour of telemetry for the seeded tenants (then run the worker)
+	$(UV) shelfsense-api demo
+
+.PHONY: docker-build
+docker-build: ## Build the API/worker/ingester image locally
+	docker build -f apps/api/Dockerfile -t shelfsense-api:local .
+
 .PHONY: openapi
 openapi: ## Export the OpenAPI document and regenerate the TS types from it
 	$(UV) shelfsense-api export-openapi
