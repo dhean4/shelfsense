@@ -84,6 +84,46 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/actions/{action_id}/approve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Approve Action
+     * @description Approve, optionally with an edited reorder quantity (cost is re-estimated).
+     */
+    post: operations["approve_action_v1_actions__action_id__approve_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/actions/{action_id}/reject": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Reject Action
+     * @description Reject with a note.
+     */
+    post: operations["reject_action_v1_actions__action_id__reject_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/extractions/{extraction_id}/plan": {
     parameters: {
       query?: never;
@@ -98,6 +138,86 @@ export interface paths {
      * @description Queue a planner run over an existing extraction (it also runs automatically).
      */
     post: operations["plan_extraction_v1_extractions__extraction_id__plan_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/extractions/{extraction_id}/review": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Review Extraction
+     * @description Record a verdict. Corrections are validated against the planogram like model output.
+     */
+    post: operations["review_extraction_v1_extractions__extraction_id__review_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/golden": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Golden
+     * @description The tenant's golden cases, newest first.
+     */
+    get: operations["list_golden_v1_golden_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/labels": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Labels
+     * @description Every stored verdict, newest first, with its golden case id when promoted.
+     */
+    get: operations["list_labels_v1_labels_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/labels/{review_id}/promote": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Promote Label
+     * @description Turn a reviewed photo into an eval example: photo + planogram snapshot + expected.
+     */
+    post: operations["promote_label_v1_labels__review_id__promote_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -136,6 +256,26 @@ export interface paths {
      * @description One photo with its extraction once processing is done.
      */
     get: operations["read_photo_v1_photos__photo_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/review/queue": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Review Queue
+     * @description Pending actions and low-confidence extractions nobody has judged yet.
+     */
+    get: operations["review_queue_v1_review_queue_get"];
     put?: never;
     post?: never;
     delete?: never;
@@ -389,6 +529,19 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     /**
+     * ActionDecisionIn
+     * @description Approve or reject an action, optionally editing a reorder's quantity.
+     */
+    ActionDecisionIn: {
+      /** Note */
+      note?: string | null;
+      /**
+       * Quantity
+       * @description For reorders: replace the proposed quantity.
+       */
+      quantity?: number | null;
+    };
+    /**
      * ActionKind
      * @description What the planner can decide to do.
      * @enum {string}
@@ -515,6 +668,48 @@ export interface components {
       detail: string;
     };
     /**
+     * ExtractionCandidateOut
+     * @description An extraction that needs a human look, with what they need to judge it.
+     */
+    ExtractionCandidateOut: {
+      /** Confidence */
+      confidence: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Download Url */
+      download_url: string;
+      extraction: components["schemas"]["ShelfExtraction"];
+      /**
+       * Extraction Id
+       * Format: uuid
+       */
+      extraction_id: string;
+      /**
+       * Photo Id
+       * Format: uuid
+       */
+      photo_id: string;
+      /** Planogram */
+      planogram: {
+        [key: string]: unknown;
+      };
+      /** Reason */
+      reason: string;
+      /**
+       * Shelf Id
+       * Format: uuid
+       */
+      shelf_id: string;
+      /** Shelf Label */
+      shelf_label: string;
+      /** Store Name */
+      store_name: string;
+      summary: components["schemas"]["ExtractionSummary"];
+    };
+    /**
      * ExtractionOut
      * @description A finished vision run: the model's extraction, the derived summary, and its cost.
      */
@@ -556,6 +751,53 @@ export interface components {
       summary: components["schemas"]["ExtractionSummary"];
     };
     /**
+     * ExtractionReviewIn
+     * @description A reviewer's verdict. ``corrected`` is required when the verdict is ``corrected``.
+     */
+    ExtractionReviewIn: {
+      corrected?: components["schemas"]["ShelfExtraction"] | null;
+      /** Note */
+      note?: string | null;
+      verdict: components["schemas"]["ReviewVerdict"];
+    };
+    /**
+     * ExtractionReviewOut
+     * @description A stored verdict (a labelled example).
+     */
+    ExtractionReviewOut: {
+      /** Corrected */
+      corrected: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Extraction Id
+       * Format: uuid
+       */
+      extraction_id: string;
+      /** Golden Case Id */
+      golden_case_id?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Note */
+      note: string | null;
+      /**
+       * Photo Id
+       * Format: uuid
+       */
+      photo_id: string;
+      /** Reviewer */
+      reviewer: string;
+      verdict: components["schemas"]["ReviewVerdict"];
+    };
+    /**
      * ExtractionSummary
      * @description Numbers the dashboard and planner consume; derived, never model-authored.
      */
@@ -578,6 +820,42 @@ export interface components {
       stock_out_rate: number;
       /** Unknown Item Count */
       unknown_item_count: number;
+    };
+    /**
+     * GoldenCaseOut
+     * @description One eval example.
+     */
+    GoldenCaseOut: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Expected */
+      expected: {
+        [key: string]: unknown;
+      };
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Object Key */
+      object_key: string;
+      /** Photo Id */
+      photo_id: string | null;
+      /** Planogram */
+      planogram: {
+        [key: string]: unknown;
+      };
+      /** Promoted By */
+      promoted_by: string;
+      /** Review Id */
+      review_id: string | null;
+      /** Source */
+      source: string;
+      /** Tags */
+      tags: string[];
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -730,6 +1008,17 @@ export interface components {
       sku_id: string;
     };
     /**
+     * PromoteIn
+     * @description Promote a review into the golden set.
+     */
+    PromoteIn: {
+      /**
+       * Tags
+       * @default []
+       */
+      tags: string[];
+    };
+    /**
      * ReadinessResponse
      * @description Body of ``/readyz``.
      */
@@ -744,6 +1033,22 @@ export interface components {
        */
       status: "ok" | "degraded";
     };
+    /**
+     * ReviewQueueOut
+     * @description Everything waiting for a reviewer.
+     */
+    ReviewQueueOut: {
+      /** Actions */
+      actions: components["schemas"]["ActionOut"][];
+      /** Extractions */
+      extractions: components["schemas"]["ExtractionCandidateOut"][];
+    };
+    /**
+     * ReviewVerdict
+     * @description What a reviewer concluded about an extraction.
+     * @enum {string}
+     */
+    ReviewVerdict: "correct" | "corrected" | "unusable";
     /**
      * Role
      * @description Tenant roles. Ordered from most to least privileged for documentation only.
@@ -1281,6 +1586,148 @@ export interface operations {
       };
     };
   };
+  approve_action_v1_actions__action_id__approve_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        action_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ActionDecisionIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ActionOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reject_action_v1_actions__action_id__reject_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        action_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ActionDecisionIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ActionOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   plan_extraction_v1_extractions__extraction_id__plan_post: {
     parameters: {
       query?: never;
@@ -1321,6 +1768,224 @@ export interface operations {
       };
       /** @description Not found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  review_extraction_v1_extractions__extraction_id__review_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        extraction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExtractionReviewIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExtractionReviewOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_golden_v1_golden_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GoldenCaseOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  list_labels_v1_labels_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExtractionReviewOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  promote_label_v1_labels__review_id__promote_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        review_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PromoteIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GoldenCaseOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Already exists */
+      409: {
         headers: {
           [name: string]: unknown;
         };
@@ -1431,6 +2096,44 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  review_queue_v1_review_queue_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReviewQueueOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };

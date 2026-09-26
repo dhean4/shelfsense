@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from shelfsense_api.agents.vision import ExtractionSummary, ShelfExtraction
 from shelfsense_api.guardrails import ActionKind
-from shelfsense_api.models import ActionStatus, PhotoStatus, Role, RunStatus
+from shelfsense_api.models import ActionStatus, PhotoStatus, ReviewVerdict, Role, RunStatus
 
 
 class ErrorResponse(BaseModel):
@@ -278,3 +278,84 @@ class RunQueued(BaseModel):
 
     extraction_id: UUID
     queued: bool = True
+
+
+# --- review queue -----------------------------------------------------------------------
+
+
+class ActionDecisionIn(BaseModel):
+    """Approve or reject an action, optionally editing a reorder's quantity."""
+
+    note: Annotated[str | None, Field(max_length=1000)] = None
+    quantity: Annotated[int | None, Field(ge=1, le=10_000)] = Field(
+        default=None, description="For reorders: replace the proposed quantity."
+    )
+
+
+class ExtractionCandidateOut(BaseModel):
+    """An extraction that needs a human look, with what they need to judge it."""
+
+    extraction_id: UUID
+    photo_id: UUID
+    shelf_id: UUID
+    shelf_label: str
+    store_name: str
+    confidence: float
+    reason: str
+    created_at: datetime
+    download_url: str
+    extraction: ShelfExtraction
+    summary: ExtractionSummary
+    planogram: dict[str, Any]
+
+
+class ReviewQueueOut(BaseModel):
+    """Everything waiting for a reviewer."""
+
+    actions: list[ActionOut]
+    extractions: list[ExtractionCandidateOut]
+
+
+class ExtractionReviewIn(BaseModel):
+    """A reviewer's verdict. ``corrected`` is required when the verdict is ``corrected``."""
+
+    verdict: ReviewVerdict
+    corrected: ShelfExtraction | None = None
+    note: Annotated[str | None, Field(max_length=2000)] = None
+
+
+class ExtractionReviewOut(_FromORM):
+    """A stored verdict (a labelled example)."""
+
+    id: UUID
+    extraction_id: UUID
+    photo_id: UUID
+    reviewer: str
+    verdict: ReviewVerdict
+    corrected: dict[str, Any] | None
+    note: str | None
+    created_at: datetime
+    golden_case_id: UUID | None = None
+
+
+class PromoteIn(BaseModel):
+    """Promote a review into the golden set."""
+
+    tags: Annotated[
+        list[Annotated[str, Field(min_length=1, max_length=64)]], Field(max_length=20)
+    ] = []
+
+
+class GoldenCaseOut(_FromORM):
+    """One eval example."""
+
+    id: UUID
+    review_id: UUID | None
+    photo_id: UUID | None
+    object_key: str
+    source: str
+    planogram: dict[str, Any]
+    expected: dict[str, Any]
+    tags: list[str]
+    promoted_by: str
+    created_at: datetime

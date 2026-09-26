@@ -18,6 +18,7 @@ tags:
   - name: tools
   - name: runs
   - name: actions
+  - name: review
 
 paths:
   /healthz:
@@ -459,6 +460,153 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
+
+  /v1/review/queue:
+    get:
+      tags: [review]
+      summary: Pending actions and low-confidence extractions (owner, manager, reviewer)
+      responses:
+        "200":
+          description: The queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReviewQueueOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /v1/actions/{action_id}/approve:
+    parameters:
+      - name: action_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [review]
+      summary: Approve an action, optionally editing a reorder quantity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActionDecisionIn" }
+      responses:
+        "200":
+          description: The approved action
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/actions/{action_id}/reject:
+    parameters:
+      - name: action_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [review]
+      summary: Reject an action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActionDecisionIn" }
+      responses:
+        "200":
+          description: The rejected action
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/extractions/{extraction_id}/review:
+    parameters:
+      - name: extraction_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [review]
+      summary: Record a verdict on an extraction (a labelled example)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExtractionReviewIn" }
+      responses:
+        "201":
+          description: Stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExtractionReviewOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/labels:
+    get:
+      tags: [review]
+      summary: Stored verdicts
+      responses:
+        "200":
+          description: Newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ExtractionReviewOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /v1/labels/{review_id}/promote:
+    parameters:
+      - name: review_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [review]
+      summary: Promote a verdict into the golden set
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PromoteIn" }
+      responses:
+        "201":
+          description: The golden case
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GoldenCaseOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/golden:
+    get:
+      tags: [review]
+      summary: Golden cases
+      responses:
+        "200":
+          description: Newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/GoldenCaseOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
 
 components:
   parameters:
@@ -942,6 +1090,119 @@ components:
       properties:
         extraction_id: { type: string, format: uuid }
         queued: { type: boolean }
+
+    ReviewVerdict:
+      type: string
+      enum: [correct, corrected, unusable]
+
+    ActionDecisionIn:
+      type: object
+      properties:
+        note: { type: [string, "null"] }
+        quantity: { type: [integer, "null"] }
+
+    ExtractionCandidateOut:
+      type: object
+      required:
+        [
+          extraction_id,
+          photo_id,
+          shelf_id,
+          shelf_label,
+          store_name,
+          confidence,
+          reason,
+          created_at,
+          download_url,
+          extraction,
+          summary,
+          planogram,
+        ]
+      properties:
+        extraction_id: { type: string, format: uuid }
+        photo_id: { type: string, format: uuid }
+        shelf_id: { type: string, format: uuid }
+        shelf_label: { type: string }
+        store_name: { type: string }
+        confidence: { type: number }
+        reason: { type: string }
+        created_at: { type: string, format: date-time }
+        download_url: { type: string }
+        extraction: { $ref: "#/components/schemas/ShelfExtraction" }
+        summary: { $ref: "#/components/schemas/ExtractionSummary" }
+        planogram: { type: object, additionalProperties: true }
+
+    ReviewQueueOut:
+      type: object
+      required: [actions, extractions]
+      properties:
+        actions:
+          type: array
+          items: { $ref: "#/components/schemas/ActionOut" }
+        extractions:
+          type: array
+          items: { $ref: "#/components/schemas/ExtractionCandidateOut" }
+
+    ExtractionReviewIn:
+      type: object
+      required: [verdict]
+      properties:
+        verdict: { $ref: "#/components/schemas/ReviewVerdict" }
+        corrected:
+          anyOf:
+            - $ref: "#/components/schemas/ShelfExtraction"
+            - type: "null"
+        note: { type: [string, "null"] }
+
+    ExtractionReviewOut:
+      type: object
+      required: [id, extraction_id, photo_id, reviewer, verdict, corrected, note, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        extraction_id: { type: string, format: uuid }
+        photo_id: { type: string, format: uuid }
+        reviewer: { type: string }
+        verdict: { $ref: "#/components/schemas/ReviewVerdict" }
+        corrected: { type: [object, "null"], additionalProperties: true }
+        note: { type: [string, "null"] }
+        created_at: { type: string, format: date-time }
+        golden_case_id: { type: [string, "null"], format: uuid }
+
+    PromoteIn:
+      type: object
+      properties:
+        tags:
+          type: array
+          items: { type: string }
+
+    GoldenCaseOut:
+      type: object
+      required:
+        [
+          id,
+          review_id,
+          photo_id,
+          object_key,
+          source,
+          planogram,
+          expected,
+          tags,
+          promoted_by,
+          created_at,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        review_id: { type: [string, "null"], format: uuid }
+        photo_id: { type: [string, "null"], format: uuid }
+        object_key: { type: string }
+        source: { type: string }
+        planogram: { type: object, additionalProperties: true }
+        expected: { type: object, additionalProperties: true }
+        tags:
+          type: array
+          items: { type: string }
+        promoted_by: { type: string }
+        created_at: { type: string, format: date-time }
 
     ValidationError:
       type: object

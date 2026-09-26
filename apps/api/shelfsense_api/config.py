@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="SHELFSENSE_", extra="ignore")
 
     env: Literal["development", "test", "production"] = "development"
+    cors_origins: list[str] = Field(
+        default=["http://localhost:3000"],
+        description="Browser origins allowed to call the API (the web app).",
+    )
 
     # --- data stores ---------------------------------------------------------------
     database_url: str = Field(

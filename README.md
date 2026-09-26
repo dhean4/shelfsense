@@ -88,6 +88,23 @@ SHELFSENSE_DEV_TENANT=<tenant id> SHELFSENSE_DEV_ROLE=manager node packages/mcp-
 
 See [ADR-0004](docs/decisions/0004-planner-tools-and-guardrails.md).
 
+### Human review and the golden set
+
+`make web` serves the dashboard on http://localhost:3000. In dev auth mode the control at
+the top right switches tenant and role. The **Review queue** page lists held actions
+(approve with an edited quantity, or reject) and low-confidence photos (correct the facings
+per slot, mark the model right, or mark the photo unusable). A stored verdict can be
+promoted into the golden set that the evals (P6) run against.
+
+```sh
+curl -s localhost:8000/v1/review/queue -H ... -H "X-Dev-Role: reviewer"
+curl -s -X POST localhost:8000/v1/actions/<id>/approve -H ... -d '{"quantity": 12}'
+curl -s -X POST localhost:8000/v1/extractions/<id>/review -H ... -d '{"verdict": "correct"}'
+curl -s -X POST localhost:8000/v1/labels/<id>/promote -H ... -d '{"tags": ["chiller"]}'
+```
+
+See [ADR-0005](docs/decisions/0005-review-queue-and-web-auth.md).
+
 ## Layout
 
 ```
@@ -109,8 +126,8 @@ docs/decisions/     ADRs
 | P1    | Data model, migrations, RLS, seed; OpenAPI spec → generated TS types | done   |
 | P2    | Photo upload, job queue, vision agent, provider abstraction          | done   |
 | P3    | MCP tools, planner loop, tool-call logging, guardrails               | done   |
-| P4    | Human review queue + promote-to-golden-set                           | next   |
-| P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     |        |
+| P4    | Human review queue + promote-to-golden-set                           | done   |
+| P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     | next   |
 | P6    | Evals package, dataset, scoring, CLI, CI PR comment                  |        |
 | P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             |        |
 | P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        |        |

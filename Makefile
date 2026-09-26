@@ -77,8 +77,9 @@ openapi: ## Export the OpenAPI document and regenerate the TS types from it
 	pnpm --filter @shelfsense/shared generate
 
 .PHONY: web
-web: ## Run the Next.js dev server on :3000
-	pnpm --filter @shelfsense/web dev
+web: .env ## Run the Next.js dev server on :3000 (reads NEXT_PUBLIC_* from .env)
+	pnpm --filter @shelfsense/shared build
+	set -a; . ./.env; set +a; pnpm --filter @shelfsense/web dev
 
 # --- Verification ------------------------------------------------------------------
 

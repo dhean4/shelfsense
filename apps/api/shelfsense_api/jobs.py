@@ -18,13 +18,7 @@ from shelfsense_api.agents.planner import (
     run_planner,
 )
 from shelfsense_api.agents.tools import ToolContext
-from shelfsense_api.agents.vision import (
-    PlanogramContext,
-    SlotContext,
-    VisionFailed,
-    result_payload,
-    run_vision,
-)
+from shelfsense_api.agents.vision import VisionFailed, result_payload, run_vision
 from shelfsense_api.config import Settings, get_settings
 from shelfsense_api.db import SYSTEM_ROLE, tenant_session
 from shelfsense_api.guardrails import CostCapExceeded, StepCapExceeded
@@ -38,11 +32,10 @@ from shelfsense_api.models import (
     Extraction,
     Photo,
     PhotoStatus,
-    Planogram,
     RunStatus,
     Shelf,
-    Sku,
 )
+from shelfsense_api.planogram_context import load_shelf_bundle
 from shelfsense_api.queue import JobQueue
 from shelfsense_api.storage import PhotoStore
 
@@ -127,41 +120,12 @@ async def process_photo(payload: dict[str, Any]) -> None:
         photo.status = PhotoStatus.processing
         photo.error = None
 
-        shelf = await session.scalar(
-            select(Shelf).where(Shelf.id == photo.shelf_id).options(selectinload(Shelf.store))
-        )
-        planogram = await session.scalar(
-            select(Planogram)
-            .where(Planogram.shelf_id == photo.shelf_id)
-            .options(selectinload(Planogram.slots))
-        )
-        if shelf is None or planogram is None or not planogram.slots:
+        bundle = await load_shelf_bundle(session, photo.shelf_id)
+        if bundle is None:
             photo.status = PhotoStatus.failed
             photo.error = "shelf has no planogram; add one before uploading photos"
             return
-        # Slots' SKUs, loaded explicitly: no lazy loads inside an async session.
-        skus = {
-            s.id: s
-            for s in await session.scalars(
-                select(Sku).where(Sku.id.in_([slot.sku_id for slot in planogram.slots]))
-            )
-        }
-        ctx = PlanogramContext(
-            store_name=shelf.store.name,
-            shelf_label=shelf.label,
-            planogram_version=planogram.version,
-            slots=tuple(
-                SlotContext(
-                    sku_id=slot.sku_id,
-                    name=skus[slot.sku_id].name,
-                    brand=skus[slot.sku_id].brand,
-                    position=slot.position,
-                    expected_facings=slot.expected_facings,
-                    min_facings=slot.min_facings,
-                )
-                for slot in sorted(planogram.slots, key=lambda s: s.position)
-            ),
-        )
+        planogram, ctx = bundle.planogram, bundle.context
 
         run = AgentRun(
             tenant_id=tenant_id,

@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from shelfsense_api import __version__
 from shelfsense_api.config import get_settings
@@ -23,6 +24,7 @@ OPENAPI_TAGS = [
     {"name": "tools", "description": "Typed tools, callable directly or by the planner."},
     {"name": "runs", "description": "Agent runs: tokens, cost, tool calls, decisions."},
     {"name": "actions", "description": "What the planner decided; the review queue's rows."},
+    {"name": "review", "description": "Human review: decide actions, label extractions, promote."},
 ]
 
 
@@ -49,6 +51,13 @@ def create_app() -> FastAPI:
         ),
         openapi_tags=OPENAPI_TAGS,
         lifespan=lifespan,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=get_settings().cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     app.include_router(health_router)
     for router in ALL_ROUTERS:

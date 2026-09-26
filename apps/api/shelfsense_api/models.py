@@ -25,7 +25,7 @@ from sqlalchemy import (
     false,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
 
 from shelfsense_api.guardrails import ActionKind
@@ -418,6 +418,63 @@ class Notification(TenantScoped, Base):
     created_at: Mapped[datetime] = _created_at()
 
 
+class ReviewVerdict(enum.StrEnum):
+    """What a reviewer concluded about an extraction."""
+
+    correct = "correct"
+    corrected = "corrected"
+    unusable = "unusable"
+
+
+REVIEW_VERDICT_ENUM = Enum(
+    ReviewVerdict, name="review_verdict", values_callable=lambda e: [m.value for m in e]
+)
+
+
+class ExtractionReview(TenantScoped, Base):
+    """A human's verdict on an extraction: the labelled example the golden set is built from."""
+
+    __tablename__ = "extraction_reviews"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    extraction_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("extractions.id", ondelete="CASCADE"), index=True
+    )
+    photo_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("photos.id", ondelete="CASCADE"), index=True
+    )
+    reviewer: Mapped[str] = mapped_column(String(128))
+    verdict: Mapped[ReviewVerdict] = mapped_column(REVIEW_VERDICT_ENUM)
+    corrected: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created_at()
+
+    golden_case: Mapped["GoldenCase | None"] = relationship(back_populates="review", uselist=False)
+
+
+class GoldenCase(TenantScoped, Base):
+    """A reviewed photo with its planogram and expected extraction: one eval example."""
+
+    __tablename__ = "golden_cases"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    review_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("extraction_reviews.id", ondelete="SET NULL"), unique=True
+    )
+    photo_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("photos.id", ondelete="SET NULL"), index=True
+    )
+    object_key: Mapped[str] = mapped_column(String(512))
+    source: Mapped[str] = mapped_column(String(32))
+    planogram: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    expected: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    tags: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
+    promoted_by: Mapped[str] = mapped_column(String(128))
+    created_at: Mapped[datetime] = _created_at()
+
+    review: Mapped[ExtractionReview | None] = relationship(back_populates="golden_case")
+
+
 TENANT_TABLES: tuple[str, ...] = (
     "users",
     "stores",
@@ -432,4 +489,6 @@ TENANT_TABLES: tuple[str, ...] = (
     "actions",
     "tool_calls",
     "notifications",
+    "extraction_reviews",
+    "golden_cases",
 )

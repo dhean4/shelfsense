@@ -1,6 +1,39 @@
 {
   "components": {
     "schemas": {
+      "ActionDecisionIn": {
+        "description": "Approve or reject an action, optionally editing a reorder's quantity.",
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "For reorders: replace the proposed quantity.",
+            "title": "Quantity"
+          }
+        },
+        "title": "ActionDecisionIn",
+        "type": "object"
+      },
       "ActionKind": {
         "description": "What the planner can decide to do.",
         "enum": ["reorder", "dispatch", "notify", "escalate"],
@@ -278,6 +311,78 @@
         "title": "ErrorResponse",
         "type": "object"
       },
+      "ExtractionCandidateOut": {
+        "description": "An extraction that needs a human look, with what they need to judge it.",
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "download_url": {
+            "title": "Download Url",
+            "type": "string"
+          },
+          "extraction": {
+            "$ref": "#/components/schemas/ShelfExtraction"
+          },
+          "extraction_id": {
+            "format": "uuid",
+            "title": "Extraction Id",
+            "type": "string"
+          },
+          "photo_id": {
+            "format": "uuid",
+            "title": "Photo Id",
+            "type": "string"
+          },
+          "planogram": {
+            "additionalProperties": true,
+            "title": "Planogram",
+            "type": "object"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "shelf_id": {
+            "format": "uuid",
+            "title": "Shelf Id",
+            "type": "string"
+          },
+          "shelf_label": {
+            "title": "Shelf Label",
+            "type": "string"
+          },
+          "store_name": {
+            "title": "Store Name",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ExtractionSummary"
+          }
+        },
+        "required": [
+          "extraction_id",
+          "photo_id",
+          "shelf_id",
+          "shelf_label",
+          "store_name",
+          "confidence",
+          "reason",
+          "created_at",
+          "download_url",
+          "extraction",
+          "summary",
+          "planogram"
+        ],
+        "title": "ExtractionCandidateOut",
+        "type": "object"
+      },
       "ExtractionOut": {
         "description": "A finished vision run: the model's extraction, the derived summary, and its cost.",
         "properties": {
@@ -365,6 +470,118 @@
         "title": "ExtractionOut",
         "type": "object"
       },
+      "ExtractionReviewIn": {
+        "description": "A reviewer's verdict. ``corrected`` is required when the verdict is ``corrected``.",
+        "properties": {
+          "corrected": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShelfExtraction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/ReviewVerdict"
+          }
+        },
+        "required": ["verdict"],
+        "title": "ExtractionReviewIn",
+        "type": "object"
+      },
+      "ExtractionReviewOut": {
+        "description": "A stored verdict (a labelled example).",
+        "properties": {
+          "corrected": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "extraction_id": {
+            "format": "uuid",
+            "title": "Extraction Id",
+            "type": "string"
+          },
+          "golden_case_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Golden Case Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "photo_id": {
+            "format": "uuid",
+            "title": "Photo Id",
+            "type": "string"
+          },
+          "reviewer": {
+            "title": "Reviewer",
+            "type": "string"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/ReviewVerdict"
+          }
+        },
+        "required": [
+          "id",
+          "extraction_id",
+          "photo_id",
+          "reviewer",
+          "verdict",
+          "corrected",
+          "note",
+          "created_at"
+        ],
+        "title": "ExtractionReviewOut",
+        "type": "object"
+      },
       "ExtractionSummary": {
         "description": "Numbers the dashboard and planner consume; derived, never model-authored.",
         "properties": {
@@ -413,6 +630,88 @@
           "unknown_item_count"
         ],
         "title": "ExtractionSummary",
+        "type": "object"
+      },
+      "GoldenCaseOut": {
+        "description": "One eval example.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expected": {
+            "additionalProperties": true,
+            "title": "Expected",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "object_key": {
+            "title": "Object Key",
+            "type": "string"
+          },
+          "photo_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Id"
+          },
+          "planogram": {
+            "additionalProperties": true,
+            "title": "Planogram",
+            "type": "object"
+          },
+          "promoted_by": {
+            "title": "Promoted By",
+            "type": "string"
+          },
+          "review_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Id"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "review_id",
+          "photo_id",
+          "object_key",
+          "source",
+          "planogram",
+          "expected",
+          "tags",
+          "promoted_by",
+          "created_at"
+        ],
+        "title": "GoldenCaseOut",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -667,6 +966,24 @@
         "title": "PlanogramSlotOut",
         "type": "object"
       },
+      "PromoteIn": {
+        "description": "Promote a review into the golden set.",
+        "properties": {
+          "tags": {
+            "default": [],
+            "items": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "title": "PromoteIn",
+        "type": "object"
+      },
       "ReadinessResponse": {
         "description": "Body of ``/readyz``.",
         "properties": {
@@ -686,6 +1003,34 @@
         "required": ["status", "checks"],
         "title": "ReadinessResponse",
         "type": "object"
+      },
+      "ReviewQueueOut": {
+        "description": "Everything waiting for a reviewer.",
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionOut"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "extractions": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractionCandidateOut"
+            },
+            "title": "Extractions",
+            "type": "array"
+          }
+        },
+        "required": ["actions", "extractions"],
+        "title": "ReviewQueueOut",
+        "type": "object"
+      },
+      "ReviewVerdict": {
+        "description": "What a reviewer concluded about an extraction.",
+        "enum": ["correct", "corrected", "unusable"],
+        "title": "ReviewVerdict",
+        "type": "string"
       },
       "Role": {
         "description": "Tenant roles. Ordered from most to least privileged for documentation only.",
@@ -1652,6 +1997,190 @@
         "tags": ["actions"]
       }
     },
+    "/v1/actions/{action_id}/approve": {
+      "post": {
+        "description": "Approve, optionally with an edited reorder quantity (cost is re-estimated).",
+        "operationId": "approve_action_v1_actions__action_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionDecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Action",
+        "tags": ["review"]
+      }
+    },
+    "/v1/actions/{action_id}/reject": {
+      "post": {
+        "description": "Reject with a note.",
+        "operationId": "reject_action_v1_actions__action_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionDecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject Action",
+        "tags": ["review"]
+      }
+    },
     "/v1/extractions/{extraction_id}/plan": {
       "post": {
         "description": "Queue a planner run over an existing extraction (it also runs automatically).",
@@ -1722,6 +2251,278 @@
         },
         "summary": "Plan Extraction",
         "tags": ["runs"]
+      }
+    },
+    "/v1/extractions/{extraction_id}/review": {
+      "post": {
+        "description": "Record a verdict. Corrections are validated against the planogram like model output.",
+        "operationId": "review_extraction_v1_extractions__extraction_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "extraction_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Extraction Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractionReviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionReviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Extraction",
+        "tags": ["review"]
+      }
+    },
+    "/v1/golden": {
+      "get": {
+        "description": "The tenant's golden cases, newest first.",
+        "operationId": "list_golden_v1_golden_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GoldenCaseOut"
+                  },
+                  "title": "Response List Golden V1 Golden Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          }
+        },
+        "summary": "List Golden",
+        "tags": ["review"]
+      }
+    },
+    "/v1/labels": {
+      "get": {
+        "description": "Every stored verdict, newest first, with its golden case id when promoted.",
+        "operationId": "list_labels_v1_labels_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExtractionReviewOut"
+                  },
+                  "title": "Response List Labels V1 Labels Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          }
+        },
+        "summary": "List Labels",
+        "tags": ["review"]
+      }
+    },
+    "/v1/labels/{review_id}/promote": {
+      "post": {
+        "description": "Turn a reviewed photo into an eval example: photo + planogram snapshot + expected.",
+        "operationId": "promote_label_v1_labels__review_id__promote_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoldenCaseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Promote Label",
+        "tags": ["review"]
       }
     },
     "/v1/me": {
@@ -1834,6 +2635,46 @@
         },
         "summary": "Read Photo",
         "tags": ["photos"]
+      }
+    },
+    "/v1/review/queue": {
+      "get": {
+        "description": "Pending actions and low-confidence extractions nobody has judged yet.",
+        "operationId": "review_queue_v1_review_queue_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          }
+        },
+        "summary": "Review Queue",
+        "tags": ["review"]
       }
     },
     "/v1/runs": {
@@ -3088,6 +3929,10 @@
     {
       "description": "What the planner decided; the review queue's rows.",
       "name": "actions"
+    },
+    {
+      "description": "Human review: decide actions, label extractions, promote.",
+      "name": "review"
     }
   ]
 }
