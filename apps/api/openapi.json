@@ -189,6 +189,92 @@
         "title": "ActionStatus",
         "type": "string"
       },
+      "AnomalyOut": {
+        "description": "A cold-chain excursion.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "device_id": {
+            "format": "uuid",
+            "title": "Device Id",
+            "type": "string"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "peak_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peak Temperature C"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AnomalyStatus"
+          }
+        },
+        "required": [
+          "id",
+          "device_id",
+          "kind",
+          "status",
+          "started_at",
+          "ended_at",
+          "peak_temperature_c",
+          "run_id",
+          "created_at"
+        ],
+        "title": "AnomalyOut",
+        "type": "object"
+      },
+      "AnomalyStatus": {
+        "description": "Whether an excursion is still going on.",
+        "enum": ["open", "resolved"],
+        "title": "AnomalyStatus",
+        "type": "string"
+      },
       "BBox": {
         "description": "Region in normalised image coordinates: origin top-left, values in [0, 1].",
         "properties": {
@@ -297,6 +383,130 @@
         },
         "required": ["sku_id", "label", "facings", "region", "confidence"],
         "title": "DetectedItem",
+        "type": "object"
+      },
+      "DeviceIn": {
+        "description": "Register a device.",
+        "properties": {
+          "external_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "title": "External Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DeviceKind"
+          },
+          "label": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "store_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Store Id"
+          }
+        },
+        "required": ["kind", "label", "external_id"],
+        "title": "DeviceIn",
+        "type": "object"
+      },
+      "DeviceKind": {
+        "description": "What sends telemetry.",
+        "enum": ["fridge", "vehicle"],
+        "title": "DeviceKind",
+        "type": "string"
+      },
+      "DeviceOut": {
+        "description": "A device with its latest state.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DeviceKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadingOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "open_anomaly": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnomalyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "store_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Store Id"
+          },
+          "store_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Store Name"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "store_name",
+          "kind",
+          "label",
+          "external_id",
+          "created_at",
+          "latest",
+          "open_anomaly"
+        ],
+        "title": "DeviceOut",
         "type": "object"
       },
       "ErrorResponse": {
@@ -740,6 +950,50 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "IngestIn": {
+        "description": "A batch of readings over HTTP.",
+        "properties": {
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/ReadingIn"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Readings",
+            "type": "array"
+          }
+        },
+        "required": ["readings"],
+        "title": "IngestIn",
+        "type": "object"
+      },
+      "IngestOut": {
+        "description": "What ingest did.",
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          },
+          "anomalies_opened": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Anomalies Opened",
+            "type": "array"
+          },
+          "unknown_devices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknown Devices",
+            "type": "array"
+          }
+        },
+        "required": ["accepted", "unknown_devices", "anomalies_opened"],
+        "title": "IngestOut",
+        "type": "object"
+      },
       "MeOut": {
         "description": "Who the caller is, as the API understands it.",
         "properties": {
@@ -1002,6 +1256,151 @@
         },
         "required": ["status", "checks"],
         "title": "ReadinessResponse",
+        "type": "object"
+      },
+      "ReadingIn": {
+        "description": "One sample as devices (and the simulator) send it.",
+        "properties": {
+          "battery_pct": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Battery Pct"
+          },
+          "device_external_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Device External Id",
+            "type": "string"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "temperature_c": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": -60.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature C"
+          }
+        },
+        "required": ["device_external_id", "recorded_at"],
+        "title": "ReadingIn",
+        "type": "object"
+      },
+      "ReadingOut": {
+        "description": "One telemetry sample.",
+        "properties": {
+          "battery_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Battery Pct"
+          },
+          "device_id": {
+            "format": "uuid",
+            "title": "Device Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature C"
+          }
+        },
+        "required": [
+          "id",
+          "device_id",
+          "recorded_at",
+          "temperature_c",
+          "latitude",
+          "longitude",
+          "battery_pct"
+        ],
+        "title": "ReadingOut",
         "type": "object"
       },
       "ReviewQueueOut": {
@@ -2179,6 +2578,307 @@
         },
         "summary": "Reject Action",
         "tags": ["review"]
+      }
+    },
+    "/v1/anomalies": {
+      "get": {
+        "description": "Excursions, newest first.",
+        "operationId": "list_anomalies_v1_anomalies_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/AnomalyStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AnomalyOut"
+                  },
+                  "title": "Response List Anomalies V1 Anomalies Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Anomalies",
+        "tags": ["telemetry"]
+      }
+    },
+    "/v1/devices": {
+      "get": {
+        "description": "Every device with its latest reading and open anomaly, if any.",
+        "operationId": "list_devices_v1_devices_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceOut"
+                  },
+                  "title": "Response List Devices V1 Devices Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          }
+        },
+        "summary": "List Devices",
+        "tags": ["telemetry"]
+      },
+      "post": {
+        "description": "Register a fridge or vehicle. Owners and managers only.",
+        "operationId": "create_device_v1_devices_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Device",
+        "tags": ["telemetry"]
+      }
+    },
+    "/v1/devices/{device_id}/telemetry": {
+      "get": {
+        "description": "Readings, newest first, optionally since a timestamp.",
+        "operationId": "device_readings_v1_devices__device_id__telemetry_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Device Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 2000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReadingOut"
+                  },
+                  "title": "Response Device Readings V1 Devices  Device Id  Telemetry Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Device Readings",
+        "tags": ["telemetry"]
       }
     },
     "/v1/extractions/{extraction_id}/plan": {
@@ -3761,6 +4461,159 @@
         "tags": ["stores"]
       }
     },
+    "/v1/telemetry": {
+      "post": {
+        "description": "Ingest readings over HTTP (devices without MQTT, tests, backfills).",
+        "operationId": "ingest_http_v1_telemetry_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ingest Http",
+        "tags": ["telemetry"]
+      }
+    },
+    "/v1/telemetry/stream": {
+      "get": {
+        "description": "Server-sent events: ``reading``, ``anomaly_opened``, ``anomaly_resolved``.",
+        "operationId": "stream_v1_telemetry_stream_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {}
+            },
+            "description": "SSE"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          }
+        },
+        "summary": "Stream",
+        "tags": ["telemetry"]
+      }
+    },
+    "/v1/telemetry/summary": {
+      "get": {
+        "description": "Counts for the dashboard tiles.",
+        "operationId": "summary_v1_telemetry_summary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Summary V1 Telemetry Summary Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          }
+        },
+        "summary": "Summary",
+        "tags": ["telemetry"]
+      }
+    },
     "/v1/tools": {
       "get": {
         "description": "Tools the caller's role may invoke, with their JSON Schemas.",
@@ -3933,6 +4786,10 @@
     {
       "description": "Human review: decide actions, label extractions, promote.",
       "name": "review"
+    },
+    {
+      "description": "Devices, readings, anomalies and the live stream.",
+      "name": "telemetry"
     }
   ]
 }

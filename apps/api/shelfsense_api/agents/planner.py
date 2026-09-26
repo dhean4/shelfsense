@@ -69,30 +69,33 @@ class PlannerInput:
 
     store_id: UUID
     store_name: str
-    shelf_label: str
-    extraction_summary: ExtractionSummary
-    overall_confidence: float
-    notes: str
     trigger_role: str
-    telemetry: str | None = None  # P5 renders fridge/GPS context as text
+    shelf_label: str | None = None
+    extraction_summary: ExtractionSummary | None = None
+    overall_confidence: float | None = None
+    notes: str = ""
+    telemetry: str | None = None  # fridge/GPS context rendered as text (P5)
 
 
 def _context_text(inp: PlannerInput) -> str:
+    lines = [f"Store: {inp.store_name} (store_id {inp.store_id})"]
     s = inp.extraction_summary
-    lines = [
-        f"Store: {inp.store_name} (store_id {inp.store_id})",
-        f"Shelf: {inp.shelf_label}",
-        f"Audit confidence: {inp.overall_confidence:.2f}",
-        f"Stock-outs: {s.stock_out_count} of {len(s.slots)} planogram SKUs; "
-        f"compliance {s.compliance_rate:.0%}; planogram share of shelf "
-        f"{s.planogram_share_of_shelf:.0f}%; unknown products seen: {s.unknown_item_count}",
-        "Slots (sku_id | product | expected | minimum | observed | status):",
-    ]
-    for slot in s.slots:
-        lines.append(
-            f"{slot.sku_id} | {slot.name} | {slot.expected_facings} | {slot.min_facings} | "
-            f"{slot.observed_facings} | {slot.status}"
-        )
+    if s is not None and inp.overall_confidence is not None:
+        lines += [
+            f"Shelf: {inp.shelf_label or 'unknown'}",
+            f"Audit confidence: {inp.overall_confidence:.2f}",
+            f"Stock-outs: {s.stock_out_count} of {len(s.slots)} planogram SKUs; "
+            f"compliance {s.compliance_rate:.0%}; planogram share of shelf "
+            f"{s.planogram_share_of_shelf:.0f}%; unknown products seen: {s.unknown_item_count}",
+            "Slots (sku_id | product | expected | minimum | observed | status):",
+        ]
+        for slot in s.slots:
+            lines.append(
+                f"{slot.sku_id} | {slot.name} | {slot.expected_facings} | {slot.min_facings} | "
+                f"{slot.observed_facings} | {slot.status}"
+            )
+    else:
+        lines.append("Shelf audit: none (this run was triggered by telemetry, not a photo).")
     if inp.notes:
         lines.append(f"Auditor notes: {scrub(inp.notes)}")
     lines.append(f"Telemetry: {scrub(inp.telemetry) if inp.telemetry else 'none available'}")
@@ -226,7 +229,7 @@ async def _gate_actions(
             store_id=inp.store_id,
             kind=ActionKind.escalate,
             status=ActionStatus.proposed,
-            payload={"shelf_label": inp.shelf_label},
+            payload={"shelf_label": inp.shelf_label or "", "store_name": inp.store_name},
             estimated_cost_kobo=0,
             confidence=inp.overall_confidence,
             rationale=result.decisions.escalation_reason or result.decisions.summary,
@@ -277,6 +280,28 @@ def planner_input_from_extraction(
         notes=str(extraction.get("notes", "")),
         trigger_role=trigger_role,
         telemetry=telemetry,
+    )
+
+
+def planner_input_from_anomaly(
+    *,
+    store_id: UUID,
+    store_name: str,
+    device_label: str,
+    started_at: str,
+    peak_temperature_c: float | None,
+    max_temp_c: float,
+    recent: str,
+    trigger_role: str = "system",
+) -> PlannerInput:
+    """Build the input for a run triggered by a cold-chain excursion."""
+    telemetry = (
+        f"Fridge '{device_label}' at {store_name} has been above {max_temp_c:.0f}°C since "
+        f"{started_at} (peak {peak_temperature_c if peak_temperature_c is not None else '?'}°C). "
+        f"Recent readings: {recent}. Stock in that fridge is at risk."
+    )
+    return PlannerInput(
+        store_id=store_id, store_name=store_name, trigger_role=trigger_role, telemetry=telemetry
     )
 
 

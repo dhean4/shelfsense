@@ -88,6 +88,26 @@ def worker(consumer: str = typer.Option("worker-1", help="Consumer name in the g
     asyncio.run(_main())
 
 
+@app.command()
+def ingest() -> None:
+    """Subscribe to MQTT telemetry and ingest it until SIGINT/SIGTERM."""
+    import logging
+    import signal
+
+    from shelfsense_api.mqtt_ingest import run_ingest
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+
+    async def _main() -> None:
+        stop = asyncio.Event()
+        loop = asyncio.get_running_loop()
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, stop.set)
+        await run_ingest(get_settings(), stop=stop)
+
+    asyncio.run(_main())
+
+
 @app.command("process-jobs")
 def process_jobs(limit: int = typer.Option(10, min=1)) -> None:
     """Handle up to LIMIT queued jobs inline, then exit (useful without a worker)."""

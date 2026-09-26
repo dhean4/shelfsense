@@ -59,6 +59,14 @@ seed: ## Load the deterministic demo dataset (idempotent)
 worker: ## Run the background job worker (vision extraction, later the planner)
 	$(UV) shelfsense-api worker
 
+.PHONY: ingest
+ingest: ## Subscribe to MQTT telemetry and ingest it (anomalies trigger the planner)
+	$(UV) shelfsense-api ingest
+
+.PHONY: simulate
+simulate: ## Publish simulated fridge/van telemetry at 10x speed (one fridge overheats after 2 min)
+	$(UV) shelfsense-simulator run
+
 .PHONY: process-jobs
 process-jobs: ## Handle queued jobs inline once, without a long-running worker
 	$(UV) shelfsense-api process-jobs

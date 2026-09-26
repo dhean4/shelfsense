@@ -4,6 +4,7 @@ Runs as the schema owner (bypasses RLS) and is idempotent: every id is a UUIDv5 
 stable key, and every insert is ``ON CONFLICT DO UPDATE``.
 """
 
+import re
 import uuid
 from dataclasses import dataclass
 
@@ -13,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shelfsense_api.db import session_factory
 from shelfsense_api.models import (
+    Device,
+    DeviceKind,
     InventoryLevel,
     Planogram,
     PlanogramSlot,
@@ -148,6 +151,42 @@ TENANTS: tuple[TenantSpec, ...] = (
         sku_range=(15, 40),
     ),
 )
+
+
+def slugify(text: str) -> str:
+    """``"Ikeja Depot Shop"`` → ``"ikeja-depot-shop"``; used for device external ids."""
+    return "-".join(part for part in re.sub(r"[^a-z0-9]+", "-", text.lower()).split("-") if part)
+
+
+def device_external_ids(spec: TenantSpec) -> list[tuple[str, str, str | None]]:
+    """(external_id, kind, store name) per device the tenant gets. Mirrored by the simulator."""
+    devices: list[tuple[str, str, str | None]] = [
+        (f"fridge-{slugify(name)}", "fridge", name) for name, *_ in spec.stores
+    ]
+    devices.append((f"van-{spec.slug}-1", "vehicle", None))
+    return devices
+
+
+async def _upsert_devices(session: AsyncSession, tenant_id: uuid.UUID, spec: TenantSpec) -> int:
+    """One fridge per store and one van per tenant."""
+    for external_id, kind, store_name in device_external_ids(spec):
+        store_id = stable_id("store", spec.slug, store_name) if store_name else None
+        label = f"{store_name} fridge" if store_name else f"{spec.name} van 1"
+        stmt = insert(Device).values(
+            id=stable_id("device", spec.slug, external_id),
+            tenant_id=tenant_id,
+            store_id=store_id,
+            kind=DeviceKind(kind),
+            label=label,
+            external_id=external_id,
+        )
+        await session.execute(
+            stmt.on_conflict_do_update(
+                index_elements=[Device.id],
+                set_={"label": stmt.excluded.label, "store_id": stmt.excluded.store_id},
+            )
+        )
+    return len(device_external_ids(spec))
 
 
 def _barcode(index: int) -> str:
@@ -333,10 +372,11 @@ async def seed_database(dsn: str) -> list[str]:
                     )
                     shelf_count += 1
                     await _upsert_inventory(session, tenant_id, spec.slug, name, store_id, sku_ids)
+            device_count = await _upsert_devices(session, tenant_id, spec)
             sku_total = sum(len(v) for v in skus.values())
             summary.append(
                 f"{spec.name} ({spec.slug}) tenant_id={tenant_id}: "
                 f"{len(spec.stores)} stores, {shelf_count} shelves, "
-                f"{sku_total} skus, {slot_count} slots"
+                f"{sku_total} skus, {slot_count} slots, {device_count} devices"
             )
     return summary

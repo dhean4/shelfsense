@@ -8,7 +8,16 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from shelfsense_api.agents.vision import ExtractionSummary, ShelfExtraction
 from shelfsense_api.guardrails import ActionKind
-from shelfsense_api.models import ActionStatus, PhotoStatus, ReviewVerdict, Role, RunStatus
+from shelfsense_api.models import (
+    ActionStatus,
+    AnomalyStatus,
+    DeviceKind,
+    PhotoStatus,
+    ReviewVerdict,
+    Role,
+    RunStatus,
+)
+from shelfsense_api.telemetry import ReadingIn
 
 
 class ErrorResponse(BaseModel):
@@ -344,6 +353,69 @@ class PromoteIn(BaseModel):
     tags: Annotated[
         list[Annotated[str, Field(min_length=1, max_length=64)]], Field(max_length=20)
     ] = []
+
+
+class ReadingOut(_FromORM):
+    """One telemetry sample."""
+
+    id: int
+    device_id: UUID
+    recorded_at: datetime
+    temperature_c: float | None
+    latitude: float | None
+    longitude: float | None
+    battery_pct: float | None
+
+
+class AnomalyOut(_FromORM):
+    """A cold-chain excursion."""
+
+    id: UUID
+    device_id: UUID
+    kind: str
+    status: AnomalyStatus
+    started_at: datetime
+    ended_at: datetime | None
+    peak_temperature_c: float | None
+    run_id: UUID | None
+    created_at: datetime
+
+
+class DeviceIn(BaseModel):
+    """Register a device."""
+
+    store_id: UUID | None = None
+    kind: DeviceKind
+    label: Annotated[str, Field(min_length=1, max_length=100)]
+    external_id: Annotated[str, Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9._-]+$")]
+
+
+class DeviceOut(BaseModel):
+    """A device with its latest state."""
+
+    id: UUID
+    store_id: UUID | None
+    store_name: str | None
+    kind: DeviceKind
+    label: str
+    external_id: str
+    created_at: datetime
+    latest: ReadingOut | None
+    open_anomaly: AnomalyOut | None
+
+
+class IngestIn(BaseModel):
+    """A batch of readings over HTTP."""
+
+    readings: Annotated[list[ReadingIn], Field(min_length=1, max_length=1000)]
+
+
+class IngestOut(BaseModel):
+    """What ingest did."""
+
+    accepted: int
+    unknown_devices: list[str]
+    anomalies_opened: list[UUID]
 
 
 class GoldenCaseOut(_FromORM):

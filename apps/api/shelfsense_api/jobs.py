@@ -14,6 +14,7 @@ from sqlalchemy.orm import selectinload
 from shelfsense_api.agents.planner import (
     PlannerFailed,
     PlannerRunSummary,
+    planner_input_from_anomaly,
     planner_input_from_extraction,
     run_planner,
 )
@@ -29,11 +30,15 @@ from shelfsense_api.models import (
     Action,
     ActionStatus,
     AgentRun,
+    Anomaly,
+    Device,
     Extraction,
     Photo,
     PhotoStatus,
     RunStatus,
     Shelf,
+    Store,
+    TelemetryReading,
 )
 from shelfsense_api.planogram_context import load_shelf_bundle
 from shelfsense_api.queue import JobQueue
@@ -43,6 +48,7 @@ log = logging.getLogger(__name__)
 
 PROCESS_PHOTO = "process_photo"
 PLAN_ACTIONS = "plan_actions"
+PLAN_ANOMALY = "plan_anomaly"
 
 _queues: dict[str, JobQueue] = {}
 _stores: dict[str, PhotoStore] = {}
@@ -56,6 +62,7 @@ def get_queue(settings: Settings) -> JobQueue:
         queue = JobQueue(settings.redis_url, stream=settings.job_stream)
         queue.handlers[PROCESS_PHOTO] = process_photo
         queue.handlers[PLAN_ACTIONS] = plan_actions
+        queue.handlers[PLAN_ANOMALY] = plan_anomaly
         _queues[key] = queue
     return queue
 
@@ -264,6 +271,78 @@ async def plan_actions(payload: dict[str, Any]) -> None:
 
         totals = _totals(tuple(result.responses), settings)
         _finish(run, RunStatus.succeeded, totals, None)
+        run.summary = json.loads(PlannerRunSummary.from_result(result).as_json())
+
+
+async def plan_anomaly(payload: dict[str, Any]) -> None:
+    """Run the planner for an open cold-chain anomaly. Payload: ``{"anomaly_id", "tenant_id"}``."""
+    settings = get_settings()
+    anomaly_id = UUID(payload["anomaly_id"])
+    tenant_id = UUID(payload["tenant_id"])
+    provider = get_provider(settings)
+
+    async with tenant_session(settings.database_url, tenant_id, SYSTEM_ROLE) as session:
+        anomaly = await session.get(Anomaly, anomaly_id)
+        if anomaly is None:
+            log.warning("anomaly %s not visible for tenant %s; dropping", anomaly_id, tenant_id)
+            return
+        if anomaly.run_id is not None:
+            return  # already planned (at-least-once delivery)
+        device = await session.get(Device, anomaly.device_id)
+        store = await session.get(Store, device.store_id) if device and device.store_id else None
+        if device is None or store is None:
+            log.warning("anomaly %s has no device/store; dropping", anomaly_id)
+            return
+        recent_rows = await session.execute(
+            select(TelemetryReading.recorded_at, TelemetryReading.temperature_c)
+            .where(TelemetryReading.device_id == device.id)
+            .order_by(TelemetryReading.recorded_at.desc())
+            .limit(6)
+        )
+        recent = ", ".join(
+            f"{t:.1f}°C at {r.strftime('%H:%M')}" for r, t in recent_rows if t is not None
+        )
+
+        run = AgentRun(
+            tenant_id=tenant_id,
+            kind="planner",
+            status=RunStatus.running,
+            trigger_role=SYSTEM_ROLE,
+            provider=provider.name,
+            model=settings.planner_model,
+        )
+        session.add(run)
+        await session.flush()
+        anomaly.run_id = run.id
+
+        ctx = ToolContext(
+            session=session, settings=settings, tenant_id=tenant_id, role=SYSTEM_ROLE, run_id=run.id
+        )
+        inp = planner_input_from_anomaly(
+            store_id=store.id,
+            store_name=store.name,
+            device_label=device.label,
+            started_at=anomaly.started_at.isoformat(timespec="minutes"),
+            peak_temperature_c=anomaly.peak_temperature_c,
+            max_temp_c=settings.fridge_max_temp_c,
+            recent=recent or "none",
+        )
+        try:
+            result = await run_planner(provider, settings, ctx, inp)
+        except (CostCapExceeded, StepCapExceeded, PlannerFailed) as exc:
+            responses = tuple(getattr(exc, "responses", ()))
+            _finish(run, RunStatus.failed, _totals(responses, settings), str(exc))
+            await _hold_unfinished_actions(session, run.id, str(exc))
+            return
+        except LLMError as exc:
+            _finish(run, RunStatus.failed, {}, str(exc))
+            await _hold_unfinished_actions(session, run.id, str(exc))
+            if exc.retryable:
+                anomaly.run_id = None
+                await session.flush()
+                raise
+            return
+        _finish(run, RunStatus.succeeded, _totals(tuple(result.responses), settings), None)
         run.summary = json.loads(PlannerRunSummary.from_result(result).as_json())
 
 

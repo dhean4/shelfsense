@@ -19,6 +19,7 @@ tags:
   - name: runs
   - name: actions
   - name: review
+  - name: telemetry
 
 paths:
   /healthz:
@@ -608,6 +609,137 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
 
+  /v1/devices:
+    get:
+      tags: [telemetry]
+      summary: Devices with latest reading and open anomaly
+      responses:
+        "200":
+          description: Devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DeviceOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [telemetry]
+      summary: Register a device (owner, manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DeviceIn" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/devices/{device_id}/telemetry:
+    parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [telemetry]
+      summary: Readings for a device, newest first
+      parameters:
+        - name: since
+          in: query
+          required: false
+          schema: { type: [string, "null"], format: date-time }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 2000, default: 200 }
+      responses:
+        "200":
+          description: Readings
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ReadingOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /v1/anomalies:
+    get:
+      tags: [telemetry]
+      summary: Cold-chain excursions
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/AnomalyStatus" }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 500, default: 100 }
+      responses:
+        "200":
+          description: Newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AnomalyOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /v1/telemetry:
+    post:
+      tags: [telemetry]
+      summary: Ingest readings over HTTP (owner, manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IngestIn" }
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IngestOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/telemetry/stream:
+    get:
+      tags: [telemetry]
+      summary: Server-sent events of readings and anomalies for the tenant
+      responses:
+        "200":
+          description: text/event-stream
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /v1/telemetry/summary:
+    get:
+      tags: [telemetry]
+      summary: Counts for dashboard tiles
+      responses:
+        "200":
+          description: Counts
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: { type: integer }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
 components:
   parameters:
     StoreId:
@@ -1174,6 +1306,102 @@ components:
         tags:
           type: array
           items: { type: string }
+
+    DeviceKind:
+      type: string
+      enum: [fridge, vehicle]
+
+    AnomalyStatus:
+      type: string
+      enum: [open, resolved]
+
+    ReadingIn:
+      type: object
+      required: [device_external_id, recorded_at]
+      properties:
+        device_external_id: { type: string }
+        recorded_at: { type: string, format: date-time }
+        temperature_c: { type: [number, "null"] }
+        latitude: { type: [number, "null"] }
+        longitude: { type: [number, "null"] }
+        battery_pct: { type: [number, "null"] }
+
+    ReadingOut:
+      type: object
+      required: [id, device_id, recorded_at, temperature_c, latitude, longitude, battery_pct]
+      properties:
+        id: { type: integer }
+        device_id: { type: string, format: uuid }
+        recorded_at: { type: string, format: date-time }
+        temperature_c: { type: [number, "null"] }
+        latitude: { type: [number, "null"] }
+        longitude: { type: [number, "null"] }
+        battery_pct: { type: [number, "null"] }
+
+    AnomalyOut:
+      type: object
+      required:
+        [id, device_id, kind, status, started_at, ended_at, peak_temperature_c, run_id, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        device_id: { type: string, format: uuid }
+        kind: { type: string }
+        status: { $ref: "#/components/schemas/AnomalyStatus" }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: [string, "null"], format: date-time }
+        peak_temperature_c: { type: [number, "null"] }
+        run_id: { type: [string, "null"], format: uuid }
+        created_at: { type: string, format: date-time }
+
+    DeviceIn:
+      type: object
+      required: [kind, label, external_id]
+      properties:
+        store_id: { type: [string, "null"], format: uuid }
+        kind: { $ref: "#/components/schemas/DeviceKind" }
+        label: { type: string }
+        external_id: { type: string }
+
+    DeviceOut:
+      type: object
+      required:
+        [id, store_id, store_name, kind, label, external_id, created_at, latest, open_anomaly]
+      properties:
+        id: { type: string, format: uuid }
+        store_id: { type: [string, "null"], format: uuid }
+        store_name: { type: [string, "null"] }
+        kind: { $ref: "#/components/schemas/DeviceKind" }
+        label: { type: string }
+        external_id: { type: string }
+        created_at: { type: string, format: date-time }
+        latest:
+          anyOf:
+            - $ref: "#/components/schemas/ReadingOut"
+            - type: "null"
+        open_anomaly:
+          anyOf:
+            - $ref: "#/components/schemas/AnomalyOut"
+            - type: "null"
+
+    IngestIn:
+      type: object
+      required: [readings]
+      properties:
+        readings:
+          type: array
+          items: { $ref: "#/components/schemas/ReadingIn" }
+
+    IngestOut:
+      type: object
+      required: [accepted, unknown_devices, anomalies_opened]
+      properties:
+        accepted: { type: integer }
+        unknown_devices:
+          type: array
+          items: { type: string }
+        anomalies_opened:
+          type: array
+          items: { type: string, format: uuid }
 
     GoldenCaseOut:
       type: object

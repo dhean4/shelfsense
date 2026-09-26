@@ -11,6 +11,7 @@ from shelfsense_api.routes.runs import router as runs_router
 from shelfsense_api.routes.shelves import router as shelves_router
 from shelfsense_api.routes.skus import router as skus_router
 from shelfsense_api.routes.stores import router as stores_router
+from shelfsense_api.routes.telemetry import router as telemetry_router
 from shelfsense_api.routes.tools import router as tools_router
 
 ALL_ROUTERS: tuple[APIRouter, ...] = (
@@ -24,4 +25,5 @@ ALL_ROUTERS: tuple[APIRouter, ...] = (
     runs_router,
     actions_router,
     review_router,
+    telemetry_router,
 )

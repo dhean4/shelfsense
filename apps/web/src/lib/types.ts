@@ -20,6 +20,9 @@ export type StoreOut = Schemas["StoreOut"];
 export type MeOut = Schemas["MeOut"];
 export type Role = Schemas["Role"];
 export type PhotoOut = Schemas["PhotoOut"];
+export type DeviceOut = Schemas["DeviceOut"];
+export type AnomalyOut = Schemas["AnomalyOut"];
+export type ReadingOut = Schemas["ReadingOut"];
 
 export interface PlanogramSnapshotSlot {
   sku_id: string;

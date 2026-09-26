@@ -11,11 +11,13 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     DateTime,
     Enum,
     Float,
     ForeignKey,
+    Identity,
     Index,
     Integer,
     Numeric,
@@ -475,6 +477,86 @@ class GoldenCase(TenantScoped, Base):
     review: Mapped[ExtractionReview | None] = relationship(back_populates="golden_case")
 
 
+class DeviceKind(enum.StrEnum):
+    """What sends telemetry."""
+
+    fridge = "fridge"
+    vehicle = "vehicle"
+
+
+class AnomalyStatus(enum.StrEnum):
+    """Whether an excursion is still going on."""
+
+    open = "open"
+    resolved = "resolved"
+
+
+DEVICE_KIND_ENUM = Enum(
+    DeviceKind, name="device_kind", values_callable=lambda e: [m.value for m in e]
+)
+ANOMALY_STATUS_ENUM = Enum(
+    AnomalyStatus, name="anomaly_status", values_callable=lambda e: [m.value for m in e]
+)
+
+
+class Device(TenantScoped, Base):
+    """A fridge or vehicle. ``external_id`` is what appears in MQTT topics."""
+
+    __tablename__ = "devices"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "external_id", name="uq_devices_tenant_external"),
+    )
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    store_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("stores.id", ondelete="SET NULL"), index=True
+    )
+    kind: Mapped[DeviceKind] = mapped_column(DEVICE_KIND_ENUM)
+    label: Mapped[str] = mapped_column(String(100))
+    external_id: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = _created_at()
+
+
+class TelemetryReading(TenantScoped, Base):
+    """One sample. Append-only time series; ``recorded_at`` carries a BRIN index."""
+
+    __tablename__ = "telemetry"
+    __table_args__ = (
+        Index("ix_telemetry_device_recorded", "device_id", "recorded_at"),
+        Index("brin_telemetry_recorded_at", "recorded_at", postgresql_using="brin"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    device_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("devices.id", ondelete="CASCADE"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    temperature_c: Mapped[float | None] = mapped_column(Float)
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    battery_pct: Mapped[float | None] = mapped_column(Float)
+    ingested_at: Mapped[datetime] = _created_at()
+
+
+class Anomaly(TenantScoped, Base):
+    """A temperature excursion the rule detected; opens once, resolves when temps recover."""
+
+    __tablename__ = "anomalies"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    device_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("devices.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(32))
+    status: Mapped[AnomalyStatus] = mapped_column(ANOMALY_STATUS_ENUM, index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    peak_temperature_c: Mapped[float | None] = mapped_column(Float)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("agent_runs.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = _created_at()
+    updated_at: Mapped[datetime] = _updated_at()
+
+
 TENANT_TABLES: tuple[str, ...] = (
     "users",
     "stores",
@@ -491,4 +573,7 @@ TENANT_TABLES: tuple[str, ...] = (
     "notifications",
     "extraction_reviews",
     "golden_cases",
+    "devices",
+    "telemetry",
+    "anomalies",
 )

@@ -124,6 +124,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/anomalies": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Anomalies
+     * @description Excursions, newest first.
+     */
+    get: operations["list_anomalies_v1_anomalies_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/devices": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Devices
+     * @description Every device with its latest reading and open anomaly, if any.
+     */
+    get: operations["list_devices_v1_devices_get"];
+    put?: never;
+    /**
+     * Create Device
+     * @description Register a fridge or vehicle. Owners and managers only.
+     */
+    post: operations["create_device_v1_devices_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/devices/{device_id}/telemetry": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Device Readings
+     * @description Readings, newest first, optionally since a timestamp.
+     */
+    get: operations["device_readings_v1_devices__device_id__telemetry_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/extractions/{extraction_id}/plan": {
     parameters: {
       query?: never;
@@ -484,6 +548,66 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/telemetry": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Ingest Http
+     * @description Ingest readings over HTTP (devices without MQTT, tests, backfills).
+     */
+    post: operations["ingest_http_v1_telemetry_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/telemetry/stream": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Stream
+     * @description Server-sent events: ``reading``, ``anomaly_opened``, ``anomaly_resolved``.
+     */
+    get: operations["stream_v1_telemetry_stream_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/telemetry/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Summary
+     * @description Counts for the dashboard tiles.
+     */
+    get: operations["summary_v1_telemetry_summary_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/tools": {
     parameters: {
       query?: never;
@@ -601,6 +725,47 @@ export interface components {
      */
     ActionStatus: "proposed" | "pending_review" | "approved" | "rejected" | "executed";
     /**
+     * AnomalyOut
+     * @description A cold-chain excursion.
+     */
+    AnomalyOut: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Device Id
+       * Format: uuid
+       */
+      device_id: string;
+      /** Ended At */
+      ended_at: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Kind */
+      kind: string;
+      /** Peak Temperature C */
+      peak_temperature_c: number | null;
+      /** Run Id */
+      run_id: string | null;
+      /**
+       * Started At
+       * Format: date-time
+       */
+      started_at: string;
+      status: components["schemas"]["AnomalyStatus"];
+    };
+    /**
+     * AnomalyStatus
+     * @description Whether an excursion is still going on.
+     * @enum {string}
+     */
+    AnomalyStatus: "open" | "resolved";
+    /**
      * BBox
      * @description Region in normalised image coordinates: origin top-left, values in [0, 1].
      */
@@ -658,6 +823,52 @@ export interface components {
        * @description Planogram SKU id this product matches, or null if not in the planogram.
        */
       sku_id: string | null;
+    };
+    /**
+     * DeviceIn
+     * @description Register a device.
+     */
+    DeviceIn: {
+      /** External Id */
+      external_id: string;
+      kind: components["schemas"]["DeviceKind"];
+      /** Label */
+      label: string;
+      /** Store Id */
+      store_id?: string | null;
+    };
+    /**
+     * DeviceKind
+     * @description What sends telemetry.
+     * @enum {string}
+     */
+    DeviceKind: "fridge" | "vehicle";
+    /**
+     * DeviceOut
+     * @description A device with its latest state.
+     */
+    DeviceOut: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** External Id */
+      external_id: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components["schemas"]["DeviceKind"];
+      /** Label */
+      label: string;
+      latest: components["schemas"]["ReadingOut"] | null;
+      open_anomaly: components["schemas"]["AnomalyOut"] | null;
+      /** Store Id */
+      store_id: string | null;
+      /** Store Name */
+      store_name: string | null;
     };
     /**
      * ErrorResponse
@@ -875,6 +1086,26 @@ export interface components {
       status: "ok";
     };
     /**
+     * IngestIn
+     * @description A batch of readings over HTTP.
+     */
+    IngestIn: {
+      /** Readings */
+      readings: components["schemas"]["ReadingIn"][];
+    };
+    /**
+     * IngestOut
+     * @description What ingest did.
+     */
+    IngestOut: {
+      /** Accepted */
+      accepted: number;
+      /** Anomalies Opened */
+      anomalies_opened: string[];
+      /** Unknown Devices */
+      unknown_devices: string[];
+    };
+    /**
      * MeOut
      * @description Who the caller is, as the API understands it.
      */
@@ -1032,6 +1263,53 @@ export interface components {
        * @enum {string}
        */
       status: "ok" | "degraded";
+    };
+    /**
+     * ReadingIn
+     * @description One sample as devices (and the simulator) send it.
+     */
+    ReadingIn: {
+      /** Battery Pct */
+      battery_pct?: number | null;
+      /** Device External Id */
+      device_external_id: string;
+      /** Latitude */
+      latitude?: number | null;
+      /** Longitude */
+      longitude?: number | null;
+      /**
+       * Recorded At
+       * Format: date-time
+       */
+      recorded_at: string;
+      /** Temperature C */
+      temperature_c?: number | null;
+    };
+    /**
+     * ReadingOut
+     * @description One telemetry sample.
+     */
+    ReadingOut: {
+      /** Battery Pct */
+      battery_pct: number | null;
+      /**
+       * Device Id
+       * Format: uuid
+       */
+      device_id: string;
+      /** Id */
+      id: number;
+      /** Latitude */
+      latitude: number | null;
+      /** Longitude */
+      longitude: number | null;
+      /**
+       * Recorded At
+       * Format: date-time
+       */
+      recorded_at: string;
+      /** Temperature C */
+      temperature_c: number | null;
     };
     /**
      * ReviewQueueOut
@@ -1710,6 +1988,215 @@ export interface operations {
       };
       /** @description Already exists */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_anomalies_v1_anomalies_get: {
+    parameters: {
+      query?: {
+        status?: components["schemas"]["AnomalyStatus"] | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnomalyOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_devices_v1_devices_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DeviceOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  create_device_v1_devices_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeviceIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DeviceOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  device_readings_v1_devices__device_id__telemetry_get: {
+    parameters: {
+      query?: {
+        since?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path: {
+        device_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReadingOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
         headers: {
           [name: string]: unknown;
         };
@@ -2971,6 +3458,145 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  ingest_http_v1_telemetry_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["IngestIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["IngestOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  stream_v1_telemetry_stream_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description SSE */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+          "text/event-stream": unknown;
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  summary_v1_telemetry_summary_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            [key: string]: number;
+          };
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };

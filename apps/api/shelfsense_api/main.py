@@ -25,6 +25,7 @@ OPENAPI_TAGS = [
     {"name": "runs", "description": "Agent runs: tokens, cost, tool calls, decisions."},
     {"name": "actions", "description": "What the planner decided; the review queue's rows."},
     {"name": "review", "description": "Human review: decide actions, label extractions, promote."},
+    {"name": "telemetry", "description": "Devices, readings, anomalies and the live stream."},
 ]
 
 

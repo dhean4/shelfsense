@@ -42,6 +42,17 @@ class Settings(BaseSettings):
         default="shelfsense:jobs", description="Redis stream for background jobs."
     )
     mqtt_url: str = "mqtt://localhost:1883"
+    mqtt_topic_prefix: str = Field(
+        default="shelfsense",
+        description="Telemetry topics: <prefix>/<tenant slug>/telemetry/<device>",
+    )
+
+    # --- cold chain -----------------------------------------------------------------
+    fridge_max_temp_c: float = Field(default=8.0, description="Above this is an excursion.")
+    fridge_excursion_minutes: int = Field(
+        default=15, ge=1, description="How long above the max before an anomaly opens."
+    )
+    telemetry_heartbeat_seconds: int = Field(default=15, ge=1)
     readiness_timeout_seconds: float = Field(
         default=2.0, gt=0, description="Per-dependency timeout for /readyz probes."
     )

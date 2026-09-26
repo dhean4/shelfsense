@@ -105,6 +105,18 @@ curl -s -X POST localhost:8000/v1/labels/<id>/promote -H ... -d '{"tags": ["chil
 
 See [ADR-0005](docs/decisions/0005-review-queue-and-web-auth.md).
 
+### Cold chain: telemetry and anomalies
+
+```sh
+make ingest      # subscribes to MQTT: shelfsense/<tenant slug>/telemetry/<device id>
+make simulate    # fridges + vans at 10x speed; the Ikeja fridge overheats after 2 simulated minutes
+make worker      # the anomaly queues a planner run (dispatch proposals go to review)
+```
+
+Open the **Cold chain** page for live readings (SSE) and anomalies. Readings can also be
+posted over HTTP (`POST /v1/telemetry`). Rule: above 8°C for 15 minutes of device time.
+See [ADR-0006](docs/decisions/0006-telemetry-and-anomalies.md).
+
 ## Layout
 
 ```
@@ -127,8 +139,8 @@ docs/decisions/     ADRs
 | P2    | Photo upload, job queue, vision agent, provider abstraction          | done   |
 | P3    | MCP tools, planner loop, tool-call logging, guardrails               | done   |
 | P4    | Human review queue + promote-to-golden-set                           | done   |
-| P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     | next   |
-| P6    | Evals package, dataset, scoring, CLI, CI PR comment                  |        |
+| P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     | done   |
+| P6    | Evals package, dataset, scoring, CLI, CI PR comment                  | next   |
 | P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             |        |
 | P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        |        |
 | P9    | Deploy (Fly + Vercel), demo tenant, architecture docs, Loom script   |        |
