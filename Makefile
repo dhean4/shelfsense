@@ -45,7 +45,20 @@ logs: ## Tail service logs
 
 .PHONY: api
 api: ## Run the API with reload on :8000
-	$(UV) shelfsense-api
+	$(UV) shelfsense-api serve
+
+.PHONY: migrate
+migrate: ## Apply database migrations (uses SHELFSENSE_MIGRATION_DATABASE_URL)
+	$(UV) shelfsense-api migrate
+
+.PHONY: seed
+seed: ## Load the deterministic demo dataset (idempotent)
+	$(UV) shelfsense-api seed
+
+.PHONY: openapi
+openapi: ## Export the OpenAPI document and regenerate the TS types from it
+	$(UV) shelfsense-api export-openapi
+	pnpm --filter @shelfsense/shared generate
 
 .PHONY: web
 web: ## Run the Next.js dev server on :3000

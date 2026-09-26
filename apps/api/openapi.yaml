@@ -1,0 +1,439 @@
+# ShelfSense API contract. Written BEFORE the routes; tests/test_contract.py fails when the
+# implementation's generated document stops honouring anything declared here. Additions in
+# the implementation (e.g. FastAPI's automatic 422) are allowed; omissions are not.
+openapi: 3.1.0
+info:
+  title: ShelfSense API
+  version: 0.1.0
+  description: Shelf photos and cold-chain telemetry in, reviewed decisions out.
+
+tags:
+  - name: health
+  - name: identity
+  - name: stores
+  - name: shelves
+  - name: skus
+  - name: planograms
+
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      summary: Liveness
+      responses:
+        "200":
+          description: Process is up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthResponse" }
+
+  /readyz:
+    get:
+      tags: [health]
+      summary: Readiness
+      responses:
+        "200":
+          description: Every dependency answered
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReadinessResponse" }
+        "503":
+          description: At least one dependency failed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReadinessResponse" }
+
+  /v1/me:
+    get:
+      tags: [identity]
+      summary: Who am I
+      responses:
+        "200":
+          description: Caller identity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /v1/stores:
+    get:
+      tags: [stores]
+      summary: List stores
+      responses:
+        "200":
+          description: Stores in the caller's tenant
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StoreOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [stores]
+      summary: Create store (owner, manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StoreIn" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StoreOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/stores/{store_id}:
+    parameters:
+      - $ref: "#/components/parameters/StoreId"
+    get:
+      tags: [stores]
+      summary: Get store
+      responses:
+        "200":
+          description: The store
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StoreOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /v1/stores/{store_id}/shelves:
+    parameters:
+      - $ref: "#/components/parameters/StoreId"
+    get:
+      tags: [stores]
+      summary: List shelves in a store
+      responses:
+        "200":
+          description: Shelves by position
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ShelfOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [stores]
+      summary: Create shelf (owner, manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ShelfIn" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ShelfOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/shelves/{shelf_id}:
+    parameters:
+      - $ref: "#/components/parameters/ShelfId"
+    get:
+      tags: [shelves]
+      summary: Get shelf
+      responses:
+        "200":
+          description: The shelf
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ShelfOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /v1/shelves/{shelf_id}/planogram:
+    parameters:
+      - $ref: "#/components/parameters/ShelfId"
+    get:
+      tags: [planograms]
+      summary: Get planogram
+      responses:
+        "200":
+          description: The shelf's planogram
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlanogramOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [planograms]
+      summary: Replace planogram (owner, manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlanogramIn" }
+      responses:
+        "200":
+          description: The new planogram version
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlanogramOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/skus:
+    get:
+      tags: [skus]
+      summary: List SKUs
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema: { type: string, maxLength: 64 }
+      responses:
+        "200":
+          description: SKUs by name
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SkuOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [skus]
+      summary: Create SKU (owner, manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SkuIn" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SkuOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+components:
+  parameters:
+    StoreId:
+      name: store_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ShelfId:
+      name: shelf_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Forbidden:
+      description: Not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Conflict:
+      description: Already exists
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    ValidationError:
+      description: Body or parameters failed validation
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/HTTPValidationError" }
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [detail]
+      properties:
+        detail: { type: string }
+
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [ok] }
+
+    CheckResult:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ok, fail] }
+        detail: { type: [string, "null"] }
+
+    ReadinessResponse:
+      type: object
+      required: [status, checks]
+      properties:
+        status: { type: string, enum: [ok, degraded] }
+        checks:
+          type: object
+          additionalProperties: { $ref: "#/components/schemas/CheckResult" }
+
+    Role:
+      type: string
+      enum: [owner, manager, field_agent, reviewer]
+
+    TenantOut:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+
+    MeOut:
+      type: object
+      required: [user_id, role, tenant]
+      properties:
+        user_id: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        tenant: { $ref: "#/components/schemas/TenantOut" }
+
+    StoreIn:
+      type: object
+      required: [name, address, latitude, longitude]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        address: { type: string, minLength: 1, maxLength: 500 }
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+
+    StoreOut:
+      type: object
+      required: [id, name, address, latitude, longitude, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ShelfIn:
+      type: object
+      required: [label]
+      properties:
+        label: { type: string, minLength: 1, maxLength: 100 }
+        position: { type: integer, minimum: 0, default: 0 }
+
+    ShelfOut:
+      type: object
+      required: [id, store_id, label, position, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        store_id: { type: string, format: uuid }
+        label: { type: string }
+        position: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    SkuIn:
+      type: object
+      required: [name, brand, barcode, category, unit_price_kobo]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        brand: { type: string, minLength: 1, maxLength: 100 }
+        barcode: { type: string, minLength: 4, maxLength: 32, pattern: "^[0-9A-Za-z\\-]+$" }
+        category: { type: string, minLength: 1, maxLength: 64 }
+        unit_price_kobo: { type: integer, minimum: 0 }
+
+    SkuOut:
+      type: object
+      required: [id, name, brand, barcode, category, unit_price_kobo, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        brand: { type: string }
+        barcode: { type: string }
+        category: { type: string }
+        unit_price_kobo: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    PlanogramSlotIn:
+      type: object
+      required: [sku_id, position, expected_facings, min_facings]
+      properties:
+        sku_id: { type: string, format: uuid }
+        position: { type: integer, minimum: 1 }
+        expected_facings: { type: integer, minimum: 1, maximum: 100 }
+        min_facings: { type: integer, minimum: 0, maximum: 100 }
+
+    PlanogramIn:
+      type: object
+      required: [slots]
+      properties:
+        slots:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items: { $ref: "#/components/schemas/PlanogramSlotIn" }
+
+    PlanogramSlotOut:
+      type: object
+      required: [id, sku_id, position, expected_facings, min_facings]
+      properties:
+        id: { type: string, format: uuid }
+        sku_id: { type: string, format: uuid }
+        position: { type: integer }
+        expected_facings: { type: integer }
+        min_facings: { type: integer }
+
+    PlanogramOut:
+      type: object
+      required: [id, shelf_id, version, updated_at, slots]
+      properties:
+        id: { type: string, format: uuid }
+        shelf_id: { type: string, format: uuid }
+        version: { type: integer }
+        updated_at: { type: string, format: date-time }
+        slots:
+          type: array
+          items: { $ref: "#/components/schemas/PlanogramSlotOut" }
+
+    ValidationError:
+      type: object
+      required: [loc, msg, type]
+      properties:
+        loc:
+          type: array
+          items: { anyOf: [{ type: string }, { type: integer }] }
+        msg: { type: string }
+        type: { type: string }
+
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items: { $ref: "#/components/schemas/ValidationError" }

@@ -39,10 +39,57 @@ jobs:
       - name: Type-check
         run: make typecheck-py
 
-      # Unit tests only. Integration tests (testcontainers) join in P2; the eval job
-      # with its PR score-delta comment joins in P6.
-      - name: Test
+      - name: Unit tests
         run: uv run pytest -m "not integration and not network"
+
+  integration:
+    name: Python — integration (testcontainers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - run: uv sync --frozen --python ${{ env.PYTHON_VERSION }}
+
+      # Starts a pgvector Postgres in Docker, migrates, seeds, and exercises RLS.
+      - name: Integration tests
+        run: uv run pytest -m integration
+
+  types-drift:
+    name: OpenAPI document and TS types are in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - run: uv sync --frozen --python ${{ env.PYTHON_VERSION }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Regenerate
+        run: make openapi
+
+      - name: Fail if anything changed
+        run: git diff --exit-code -- apps/api/openapi.json packages/shared/src/generated
 
   web:
     name: Web — lint, types, build

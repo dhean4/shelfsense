@@ -51,6 +51,33 @@ async def check_postgres(settings: Settings) -> None:
         await conn.close()
 
 
+class RlsBypassError(RuntimeError):
+    """The runtime database role can bypass row-level security."""
+
+
+async def check_rls_enforced(settings: Settings) -> None:
+    """Fail if the runtime role is a superuser or has BYPASSRLS.
+
+    Such a role sees every tenant's rows, so tenant isolation would be silently off.
+    Checked at startup and on every ``/readyz``; see ADR-0002.
+    """
+    conn = await asyncpg.connect(settings.database_url, timeout=settings.readiness_timeout_seconds)
+    try:
+        row = await conn.fetchrow(
+            "SELECT current_user AS role, rolsuper, rolbypassrls "
+            "FROM pg_roles WHERE rolname = current_user"
+        )
+    finally:
+        await conn.close()
+    if row is None:  # pragma: no cover — current_user always exists
+        raise RlsBypassError("could not inspect the current database role")
+    if row["rolsuper"] or row["rolbypassrls"]:
+        raise RlsBypassError(
+            f"database role {row['role']!r} bypasses row-level security "
+            "(superuser or BYPASSRLS); point SHELFSENSE_DATABASE_URL at the app role"
+        )
+
+
 async def check_redis(settings: Settings) -> None:
     """``PING`` Redis over a throwaway client. Raises on any failure."""
     client = aioredis.from_url(
@@ -69,6 +96,7 @@ Probe = Callable[[Settings], Awaitable[None]]
 # Name → probe. Later phases append MinIO and the MQTT broker here.
 PROBES: dict[str, Probe] = {
     "postgres": check_postgres,
+    "rls": check_rls_enforced,
     "redis": check_redis,
 }
 

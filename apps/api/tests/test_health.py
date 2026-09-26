@@ -22,15 +22,21 @@ async def test_healthz_is_ok_without_any_dependency(client: AsyncClient) -> None
 async def test_readyz_is_ok_when_every_probe_passes(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(health, "PROBES", {"postgres": _ok, "redis": _ok})
+    monkeypatch.setattr(health, "PROBES", {"postgres": _ok, "rls": _ok, "redis": _ok})
     response = await client.get("/readyz")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
     assert body["checks"] == {
         "postgres": {"status": "ok", "detail": None},
+        "rls": {"status": "ok", "detail": None},
         "redis": {"status": "ok", "detail": None},
     }
+
+
+def test_rls_probe_is_registered() -> None:
+    """Removing the guard from readiness must be a deliberate, visible change."""
+    assert "rls" in health.PROBES
 
 
 async def test_readyz_is_503_and_names_the_failing_dependency(

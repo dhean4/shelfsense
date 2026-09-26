@@ -27,6 +27,9 @@ dev = [
     "pytest-asyncio==1.4.0",
     "httpx==0.28.1",
     "asyncpg-stubs>=0.30",
+    "testcontainers[postgres]>=4.15",
+    "pyyaml>=6.0",
+    "types-pyyaml>=6.0",
 ]
 
 # ---------------------------------------------------------------------------
@@ -64,9 +67,13 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.flake8-bugbear]
+# Typer/FastAPI declare parameters through calls in defaults by design.
+extend-immutable-calls = ["typer.Option", "typer.Argument", "fastapi.Depends", "fastapi.Query"]
+
 [tool.ruff.lint.per-file-ignores]
 # Tests document themselves through their names.
-"**/tests/**" = ["D100", "D101", "D102", "D103", "D104"]
+"**/tests/**" = ["D100", "D101", "D102", "D103", "D104", "D107"]
 "**/__init__.py" = ["D104"]
 
 [tool.mypy]
@@ -89,6 +96,9 @@ testpaths = ["apps/api/tests", "apps/simulator/tests"]
 # importlib mode: both members have a `tests` package; prepend mode would shadow one.
 addopts = "-q --strict-markers --strict-config --import-mode=importlib"
 asyncio_mode = "auto"
+# One event loop per session so the cached async engines stay attached to a live loop.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 markers = [
     "integration: needs the Compose stack (postgres, redis, ...); excluded from the unit run",
     "network: hits a live external API; excluded from the default run and from CI",

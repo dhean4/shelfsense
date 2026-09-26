@@ -23,9 +23,6 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 
-# Generated (regenerate with `pnpm --filter @shelfsense/shared generate`)
-packages/shared/src/generated/
-
 # Docker volumes and local data
 .data/
 
