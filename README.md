@@ -21,6 +21,7 @@ make dev         # postgres :5433, redis :6379, minio :9000, mqtt :1883
 make migrate     # alembic upgrade head
 make seed        # 2 tenants, 3 stores, 6 shelves, 40 SKUs, planograms (prints tenant ids)
 make api         # FastAPI on :8000  →  curl localhost:8000/readyz
+make worker      # background jobs: vision extraction (needs ANTHROPIC_API_KEY in .env)
 make web         # Next.js on :3000
 make verify      # everything CI runs
 make dev-full    # + Langfuse on :3001 (login: dev@shelfsense.local / shelfsense-dev-password)
@@ -48,6 +49,22 @@ With `SHELFSENSE_AUTH_MODE=jwks` the API verifies Clerk session tokens instead. 
 Clerk **Organizations** enabled on the instance, and each organisation's id stored in
 `tenants.external_org_id`. See [ADR-0002](docs/decisions/0002-tenant-context-and-auth.md).
 
+### Uploading a shelf photo
+
+```sh
+SHELF=<shelf id from /v1/stores/{id}/shelves>
+curl -s -X POST localhost:8000/v1/shelves/$SHELF/photos \
+  -H "X-Dev-Tenant: ef23fb7b-a8db-5875-a68a-feddef32c864" -H "X-Dev-Role: field_agent" \
+  -F "file=@apps/api/tests/fixtures/photos/dairy_two_stockouts.png;type=image/png"
+make process-jobs          # or keep `make worker` running
+curl -s localhost:8000/v1/photos/<photo id> -H "X-Dev-Tenant: ..." -H "X-Dev-Role: reviewer"
+```
+
+The response carries the model's extraction (items, stock-outs, share of shelf, regions),
+a derived planogram compliance summary, and the run's tokens, cost and latency. Model,
+effort and provider are settings; tests replay recorded responses and never call the API.
+See [ADR-0003](docs/decisions/0003-llm-layer-and-jobs.md).
+
 ## Layout
 
 ```
@@ -67,8 +84,8 @@ docs/decisions/     ADRs
 | ----- | -------------------------------------------------------------------- | ------ |
 | P0    | Monorepo, tooling, Compose, CI skeleton, ADR-0001                    | done   |
 | P1    | Data model, migrations, RLS, seed; OpenAPI spec → generated TS types | done   |
-| P2    | Photo upload, job queue, vision agent, provider abstraction          | next   |
-| P3    | MCP tools, planner loop, tool-call logging, guardrails               |        |
+| P2    | Photo upload, job queue, vision agent, provider abstraction          | done   |
+| P3    | MCP tools, planner loop, tool-call logging, guardrails               | next   |
 | P4    | Human review queue + promote-to-golden-set                           |        |
 | P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     |        |
 | P6    | Evals package, dataset, scoring, CLI, CI PR comment                  |        |

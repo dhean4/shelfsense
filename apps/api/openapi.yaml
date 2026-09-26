@@ -14,6 +14,7 @@ tags:
   - name: shelves
   - name: skus
   - name: planograms
+  - name: photos
 
 paths:
   /healthz:
@@ -230,6 +231,75 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /v1/shelves/{shelf_id}/photos:
+    parameters:
+      - $ref: "#/components/parameters/ShelfId"
+    get:
+      tags: [photos]
+      summary: List photos of a shelf
+      responses:
+        "200":
+          description: Newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PhotoOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [photos]
+      summary: Upload a shelf photo (owner, manager, field_agent)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "202":
+          description: Stored and queued for extraction
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PhotoOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "413":
+          description: Too large
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "415":
+          description: Not an image
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /v1/photos/{photo_id}:
+    parameters:
+      - name: photo_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [photos]
+      summary: Get a photo and its extraction
+      responses:
+        "200":
+          description: The photo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PhotoOut" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     StoreId:
@@ -420,6 +490,156 @@ components:
         slots:
           type: array
           items: { $ref: "#/components/schemas/PlanogramSlotOut" }
+
+    PhotoStatus:
+      type: string
+      enum: [queued, processing, done, failed]
+
+    BBox:
+      type: object
+      required: [x, y, w, h]
+      properties:
+        x: { type: number }
+        y: { type: number }
+        w: { type: number }
+        h: { type: number }
+
+    DetectedItem:
+      type: object
+      required: [sku_id, label, facings, region, confidence]
+      properties:
+        sku_id: { type: [string, "null"], format: uuid }
+        label: { type: string }
+        facings: { type: integer }
+        region: { $ref: "#/components/schemas/BBox" }
+        confidence: { type: number }
+
+    ShareOfShelf:
+      type: object
+      required: [sku_id, percent]
+      properties:
+        sku_id: { type: string, format: uuid }
+        percent: { type: number }
+
+    ShelfExtraction:
+      type: object
+      required: [items, stock_outs, share_of_shelf, overall_confidence, notes]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/DetectedItem" }
+        stock_outs:
+          type: array
+          items: { type: string, format: uuid }
+        share_of_shelf:
+          type: array
+          items: { $ref: "#/components/schemas/ShareOfShelf" }
+        overall_confidence: { type: number }
+        notes: { type: string }
+
+    SlotCompliance:
+      type: object
+      required: [sku_id, name, position, expected_facings, min_facings, observed_facings, status]
+      properties:
+        sku_id: { type: string, format: uuid }
+        name: { type: string }
+        position: { type: integer }
+        expected_facings: { type: integer }
+        min_facings: { type: integer }
+        observed_facings: { type: integer }
+        status: { type: string, enum: [ok, low, out] }
+
+    ExtractionSummary:
+      type: object
+      required:
+        [
+          slots,
+          stock_out_count,
+          stock_out_rate,
+          compliance_rate,
+          planogram_share_of_shelf,
+          unknown_item_count,
+        ]
+      properties:
+        slots:
+          type: array
+          items: { $ref: "#/components/schemas/SlotCompliance" }
+        stock_out_count: { type: integer }
+        stock_out_rate: { type: number }
+        compliance_rate: { type: number }
+        planogram_share_of_shelf: { type: number }
+        unknown_item_count: { type: integer }
+
+    ExtractionOut:
+      type: object
+      required:
+        [
+          id,
+          run_id,
+          model,
+          provider,
+          planogram_version,
+          overall_confidence,
+          extraction,
+          summary,
+          input_tokens,
+          output_tokens,
+          cost_usd,
+          latency_ms,
+          attempts,
+          created_at,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        run_id: { type: string, format: uuid }
+        model: { type: string }
+        provider: { type: string }
+        planogram_version: { type: integer }
+        overall_confidence: { type: number }
+        extraction: { $ref: "#/components/schemas/ShelfExtraction" }
+        summary: { $ref: "#/components/schemas/ExtractionSummary" }
+        input_tokens: { type: integer }
+        output_tokens: { type: integer }
+        cost_usd: { type: [number, "null"] }
+        latency_ms: { type: integer }
+        attempts: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    PhotoOut:
+      type: object
+      required:
+        [
+          id,
+          shelf_id,
+          status,
+          content_type,
+          size_bytes,
+          width,
+          height,
+          uploaded_by,
+          error,
+          created_at,
+          updated_at,
+          download_url,
+          extraction,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        shelf_id: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/PhotoStatus" }
+        content_type: { type: string }
+        size_bytes: { type: integer }
+        width: { type: integer }
+        height: { type: integer }
+        uploaded_by: { type: string }
+        error: { type: [string, "null"] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        download_url: { type: string }
+        extraction:
+          anyOf:
+            - $ref: "#/components/schemas/ExtractionOut"
+            - type: "null"
 
     ValidationError:
       type: object

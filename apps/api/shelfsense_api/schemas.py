@@ -6,7 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from shelfsense_api.models import Role
+from shelfsense_api.agents.vision import ExtractionSummary, ShelfExtraction
+from shelfsense_api.models import PhotoStatus, Role
 
 
 class ErrorResponse(BaseModel):
@@ -148,3 +149,43 @@ class PlanogramOut(_FromORM):
     version: int
     updated_at: datetime
     slots: list[PlanogramSlotOut]
+
+
+# --- photos and extractions -------------------------------------------------------------
+
+
+class ExtractionOut(BaseModel):
+    """A finished vision run: the model's extraction, the derived summary, and its cost."""
+
+    id: UUID
+    run_id: UUID
+    model: str
+    provider: str
+    planogram_version: int
+    overall_confidence: float
+    extraction: ShelfExtraction
+    summary: ExtractionSummary
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float | None
+    latency_ms: int
+    attempts: int
+    created_at: datetime
+
+
+class PhotoOut(BaseModel):
+    """A shelf photo and where its processing stands."""
+
+    id: UUID
+    shelf_id: UUID
+    status: PhotoStatus
+    content_type: str
+    size_bytes: int
+    width: int
+    height: int
+    uploaded_by: str
+    error: str | None
+    created_at: datetime
+    updated_at: datetime
+    download_url: str = Field(description="Time-limited URL for the original image.")
+    extraction: ExtractionOut | None

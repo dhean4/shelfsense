@@ -1,6 +1,51 @@
 {
   "components": {
     "schemas": {
+      "BBox": {
+        "description": "Region in normalised image coordinates: origin top-left, values in [0, 1].",
+        "properties": {
+          "h": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "H",
+            "type": "number"
+          },
+          "w": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "W",
+            "type": "number"
+          },
+          "x": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": ["x", "y", "w", "h"],
+        "title": "BBox",
+        "type": "object"
+      },
+      "Body_upload_photo_v1_shelves__shelf_id__photos_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "description": "JPEG, PNG or WebP shelf photo",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": ["file"],
+        "title": "Body_upload_photo_v1_shelves__shelf_id__photos_post",
+        "type": "object"
+      },
       "CheckResult": {
         "description": "Outcome of probing one dependency.",
         "properties": {
@@ -25,6 +70,47 @@
         "title": "CheckResult",
         "type": "object"
       },
+      "DetectedItem": {
+        "description": "One product group seen on the shelf.",
+        "properties": {
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "facings": {
+            "description": "Front-facing units visible.",
+            "minimum": 0.0,
+            "title": "Facings",
+            "type": "integer"
+          },
+          "label": {
+            "description": "What is visible, e.g. 'Peak Evaporated Milk 160g'.",
+            "title": "Label",
+            "type": "string"
+          },
+          "region": {
+            "$ref": "#/components/schemas/BBox"
+          },
+          "sku_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Planogram SKU id this product matches, or null if not in the planogram.",
+            "title": "Sku Id"
+          }
+        },
+        "required": ["sku_id", "label", "facings", "region", "confidence"],
+        "title": "DetectedItem",
+        "type": "object"
+      },
       "ErrorResponse": {
         "description": "Body of every 4xx/5xx the API raises deliberately.",
         "properties": {
@@ -35,6 +121,143 @@
         },
         "required": ["detail"],
         "title": "ErrorResponse",
+        "type": "object"
+      },
+      "ExtractionOut": {
+        "description": "A finished vision run: the model's extraction, the derived summary, and its cost.",
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Usd"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "extraction": {
+            "$ref": "#/components/schemas/ShelfExtraction"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "overall_confidence": {
+            "title": "Overall Confidence",
+            "type": "number"
+          },
+          "planogram_version": {
+            "title": "Planogram Version",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ExtractionSummary"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "model",
+          "provider",
+          "planogram_version",
+          "overall_confidence",
+          "extraction",
+          "summary",
+          "input_tokens",
+          "output_tokens",
+          "cost_usd",
+          "latency_ms",
+          "attempts",
+          "created_at"
+        ],
+        "title": "ExtractionOut",
+        "type": "object"
+      },
+      "ExtractionSummary": {
+        "description": "Numbers the dashboard and planner consume; derived, never model-authored.",
+        "properties": {
+          "compliance_rate": {
+            "description": "Share of planogram slots at or above their minimum facings.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Compliance Rate",
+            "type": "number"
+          },
+          "planogram_share_of_shelf": {
+            "description": "Percent of visible facings that belong to planogram SKUs.",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Planogram Share Of Shelf",
+            "type": "number"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/SlotCompliance"
+            },
+            "title": "Slots",
+            "type": "array"
+          },
+          "stock_out_count": {
+            "title": "Stock Out Count",
+            "type": "integer"
+          },
+          "stock_out_rate": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Stock Out Rate",
+            "type": "number"
+          },
+          "unknown_item_count": {
+            "title": "Unknown Item Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slots",
+          "stock_out_count",
+          "stock_out_rate",
+          "compliance_rate",
+          "planogram_share_of_shelf",
+          "unknown_item_count"
+        ],
+        "title": "ExtractionSummary",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -80,6 +303,103 @@
         "required": ["user_id", "role", "tenant"],
         "title": "MeOut",
         "type": "object"
+      },
+      "PhotoOut": {
+        "description": "A shelf photo and where its processing stands.",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "download_url": {
+            "description": "Time-limited URL for the original image.",
+            "title": "Download Url",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExtractionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "shelf_id": {
+            "format": "uuid",
+            "title": "Shelf Id",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PhotoStatus"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "uploaded_by": {
+            "title": "Uploaded By",
+            "type": "string"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "shelf_id",
+          "status",
+          "content_type",
+          "size_bytes",
+          "width",
+          "height",
+          "uploaded_by",
+          "error",
+          "created_at",
+          "updated_at",
+          "download_url",
+          "extraction"
+        ],
+        "title": "PhotoOut",
+        "type": "object"
+      },
+      "PhotoStatus": {
+        "description": "Where a photo is in the pipeline.",
+        "enum": ["queued", "processing", "done", "failed"],
+        "title": "PhotoStatus",
+        "type": "string"
       },
       "PlanogramIn": {
         "description": "Replace a shelf's planogram wholesale.",
@@ -217,6 +537,67 @@
         "enum": ["owner", "manager", "field_agent", "reviewer"],
         "title": "Role",
         "type": "string"
+      },
+      "ShareOfShelf": {
+        "description": "Share of visible facings held by one planogram SKU.",
+        "properties": {
+          "percent": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Percent",
+            "type": "number"
+          },
+          "sku_id": {
+            "format": "uuid",
+            "title": "Sku Id",
+            "type": "string"
+          }
+        },
+        "required": ["sku_id", "percent"],
+        "title": "ShareOfShelf",
+        "type": "object"
+      },
+      "ShelfExtraction": {
+        "description": "What the vision agent returns. The contract for evals and the review queue.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DetectedItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "notes": {
+            "description": "Anything a reviewer should know: glare, occlusion, doubts.",
+            "title": "Notes",
+            "type": "string"
+          },
+          "overall_confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Overall Confidence",
+            "type": "number"
+          },
+          "share_of_shelf": {
+            "items": {
+              "$ref": "#/components/schemas/ShareOfShelf"
+            },
+            "title": "Share Of Shelf",
+            "type": "array"
+          },
+          "stock_outs": {
+            "description": "Planogram SKU ids with zero facings visible.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Stock Outs",
+            "type": "array"
+          }
+        },
+        "required": ["items", "stock_outs", "share_of_shelf", "overall_confidence", "notes"],
+        "title": "ShelfExtraction",
+        "type": "object"
       },
       "ShelfIn": {
         "description": "Create a shelf inside a store.",
@@ -362,6 +743,52 @@
           "updated_at"
         ],
         "title": "SkuOut",
+        "type": "object"
+      },
+      "SlotCompliance": {
+        "description": "Expected versus observed facings for one planogram slot.",
+        "properties": {
+          "expected_facings": {
+            "title": "Expected Facings",
+            "type": "integer"
+          },
+          "min_facings": {
+            "title": "Min Facings",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "observed_facings": {
+            "title": "Observed Facings",
+            "type": "integer"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "sku_id": {
+            "format": "uuid",
+            "title": "Sku Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": ["ok", "low", "out"],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku_id",
+          "name",
+          "position",
+          "expected_facings",
+          "min_facings",
+          "observed_facings",
+          "status"
+        ],
+        "title": "SlotCompliance",
         "type": "object"
       },
       "StoreIn": {
@@ -591,6 +1018,78 @@
         "tags": ["identity"]
       }
     },
+    "/v1/photos/{photo_id}": {
+      "get": {
+        "description": "One photo with its extraction once processing is done.",
+        "operationId": "read_photo_v1_photos__photo_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "photo_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Photo Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Photo",
+        "tags": ["photos"]
+      }
+    },
     "/v1/shelves/{shelf_id}": {
       "get": {
         "description": "One shelf.",
@@ -661,6 +1160,192 @@
         },
         "summary": "Read Shelf",
         "tags": ["shelves"]
+      }
+    },
+    "/v1/shelves/{shelf_id}/photos": {
+      "get": {
+        "description": "Photos of a shelf, newest first.",
+        "operationId": "list_photos_v1_shelves__shelf_id__photos_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shelf_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Shelf Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PhotoOut"
+                  },
+                  "title": "Response List Photos V1 Shelves  Shelf Id  Photos Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Photos",
+        "tags": ["photos"]
+      },
+      "post": {
+        "description": "Store the photo and queue the vision extraction. Returns 202 with status ``queued``.",
+        "operationId": "upload_photo_v1_shelves__shelf_id__photos_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shelf_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Shelf Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_photo_v1_shelves__shelf_id__photos_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already exists"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not an image"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Photo",
+        "tags": ["photos"]
       }
     },
     "/v1/shelves/{shelf_id}/planogram": {
@@ -1341,6 +2026,10 @@
     {
       "description": "What each shelf should hold.",
       "name": "planograms"
+    },
+    {
+      "description": "Shelf photo uploads and their extractions.",
+      "name": "photos"
     }
   ]
 }

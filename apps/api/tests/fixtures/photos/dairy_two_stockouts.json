@@ -1,0 +1,25 @@
+{
+  "scenario": "dairy_two_stockouts",
+  "description": "Two stock-outs, one SKU below minimum is not (min is 1).",
+  "tenant_slug": "lagos-fresh",
+  "store_name": "Ikeja Depot Shop",
+  "shelf_label": "Dairy Chiller",
+  "facings": {
+    "Peak Evaporated Milk 160g": 4,
+    "Three Crowns Evaporated Milk 160g": 2,
+    "Dano Cool Cow Milk 400g": 1,
+    "Hollandia Yoghurt 1L": 3,
+    "Peak Powdered Milk 400g": 0,
+    "Cowbell Milk Sachet 12g": 0
+  },
+  "stock_outs": ["Peak Powdered Milk 400g", "Cowbell Milk Sachet 12g"],
+  "unknown_products": [],
+  "sku_ids": {
+    "Peak Evaporated Milk 160g": "fe12b692-038b-580a-8b31-ca85e9b7931f",
+    "Peak Powdered Milk 400g": "49e24ab6-4804-5f85-9ec0-65a02401eec7",
+    "Three Crowns Evaporated Milk 160g": "7c33d189-d58d-548a-925e-929c713ac88b",
+    "Cowbell Milk Sachet 12g": "02cdf388-4b50-51ea-8d97-a57b4a733065",
+    "Dano Cool Cow Milk 400g": "86da5d60-8ade-551f-97b1-24f03f3f84fe",
+    "Hollandia Yoghurt 1L": "b2ded22d-caa3-5fce-8c90-f2dd2580d4b0"
+  }
+}

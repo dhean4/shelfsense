@@ -34,11 +34,42 @@ class Settings(BaseSettings):
         description="DSN for Alembic and the seed script: the schema owner, bypasses RLS.",
     )
     redis_url: str = "redis://localhost:6379/0"
-    s3_endpoint_url: str = "http://localhost:9000"
     mqtt_url: str = "mqtt://localhost:1883"
     readiness_timeout_seconds: float = Field(
         default=2.0, gt=0, description="Per-dependency timeout for /readyz probes."
     )
+
+    # --- object storage (MinIO locally, any S3 in production) ------------------------
+    s3_endpoint_url: str = "http://localhost:9000"
+    s3_region: str = "us-east-1"
+    s3_access_key: str = "shelfsense"
+    s3_secret_key: str = "shelfsense-dev-secret"
+    s3_bucket_photos: str = "photos"
+    s3_presign_seconds: int = Field(default=900, ge=60, le=86_400)
+    max_upload_bytes: int = Field(default=10 * 1024 * 1024, ge=1024)
+
+    # --- LLM ------------------------------------------------------------------------
+    llm_provider: Literal["anthropic", "replay", "fake"] = Field(
+        default="anthropic",
+        description=(
+            "'anthropic' calls the API; 'replay' serves recorded fixtures and fails on a "
+            "miss; 'fake' serves scripted responses (integration tests)."
+        ),
+    )
+    llm_record: bool = Field(
+        default=False,
+        description="With provider=anthropic, also write every response to llm_fixtures_dir.",
+    )
+    llm_fixtures_dir: str = "apps/api/tests/fixtures/llm"
+    llm_pricing_json: str | None = Field(
+        default=None,
+        description='Override the price table: {"model": [input, output, cache_read, cache_write]}',
+    )
+    vision_model: str = "claude-opus-5"
+    vision_effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
+    vision_max_tokens: int = Field(default=8_000, ge=256)
+    vision_max_repairs: int = Field(default=2, ge=0, le=5)
+    vision_max_image_edge: int = Field(default=1568, ge=256)
 
     # --- auth ----------------------------------------------------------------------
     auth_mode: AuthMode = Field(

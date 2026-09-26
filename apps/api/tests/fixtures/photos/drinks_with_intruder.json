@@ -1,0 +1,36 @@
+{
+  "scenario": "drinks_with_intruder",
+  "description": "Two stock-outs plus a product that is not in the planogram.",
+  "tenant_slug": "lagos-fresh",
+  "store_name": "Ikeja Depot Shop",
+  "shelf_label": "Drinks Chiller",
+  "facings": {
+    "Coca-Cola 50cl PET": 4,
+    "Pepsi 50cl PET": 3,
+    "Sprite 50cl PET": 2,
+    "Bigi Cola 60cl": 3,
+    "Eva Water 75cl": 3,
+    "Ragolis Water 75cl": 2,
+    "Five Alive Citrus 1L": 2,
+    "Maltina 33cl Can": 3,
+    "Amstel Malta 33cl Can": 2,
+    "Lucozade Boost 50cl": 2,
+    "Fanta Orange 50cl PET": 0,
+    "Chivita Orange 1L": 0
+  },
+  "stock_outs": ["Fanta Orange 50cl PET", "Chivita Orange 1L"],
+  "unknown_products": ["Lucozade Boost 50cl"],
+  "sku_ids": {
+    "Coca-Cola 50cl PET": "771d0edb-f3a7-53c1-bbda-9111aed1809f",
+    "Pepsi 50cl PET": "3d65d108-9bee-587d-89bf-d9399565c7d6",
+    "Fanta Orange 50cl PET": "298ff6a3-ff87-5ac6-8f3c-6a443f343b52",
+    "Sprite 50cl PET": "6deb2ee1-f847-5cbb-b650-69e429f1ad66",
+    "Bigi Cola 60cl": "85eaa58e-54b3-58dc-9e52-5cac71f4cc68",
+    "Eva Water 75cl": "0fe5841a-1779-5631-8373-71208cabe5fa",
+    "Ragolis Water 75cl": "213c5cb1-d553-50e5-a3db-47b52857ba5e",
+    "Chivita Orange 1L": "0f0fdd52-980f-5e8d-be9a-9a7b52737048",
+    "Five Alive Citrus 1L": "a26c22ba-a215-5851-88ab-5ee0e325da97",
+    "Maltina 33cl Can": "95fced27-0534-5b27-b7c6-a84eb5588e6a",
+    "Amstel Malta 33cl Can": "56ff61d5-713b-5dc7-a2ed-154f38b29328"
+  }
+}

@@ -19,6 +19,7 @@ OPENAPI_TAGS = [
     {"name": "shelves", "description": "Shelves addressed by id."},
     {"name": "skus", "description": "The tenant's product catalogue."},
     {"name": "planograms", "description": "What each shelf should hold."},
+    {"name": "photos", "description": "Shelf photo uploads and their extractions."},
 ]
 
 

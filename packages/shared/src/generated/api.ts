@@ -64,6 +64,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/photos/{photo_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read Photo
+     * @description One photo with its extraction once processing is done.
+     */
+    get: operations["read_photo_v1_photos__photo_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/shelves/{shelf_id}": {
     parameters: {
       query?: never;
@@ -78,6 +98,30 @@ export interface paths {
     get: operations["read_shelf_v1_shelves__shelf_id__get"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/shelves/{shelf_id}/photos": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Photos
+     * @description Photos of a shelf, newest first.
+     */
+    get: operations["list_photos_v1_shelves__shelf_id__photos_get"];
+    put?: never;
+    /**
+     * Upload Photo
+     * @description Store the photo and queue the vision extraction. Returns 202 with status ``queued``.
+     */
+    post: operations["upload_photo_v1_shelves__shelf_id__photos_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -205,6 +249,28 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     /**
+     * BBox
+     * @description Region in normalised image coordinates: origin top-left, values in [0, 1].
+     */
+    BBox: {
+      /** H */
+      h: number;
+      /** W */
+      w: number;
+      /** X */
+      x: number;
+      /** Y */
+      y: number;
+    };
+    /** Body_upload_photo_v1_shelves__shelf_id__photos_post */
+    Body_upload_photo_v1_shelves__shelf_id__photos_post: {
+      /**
+       * File
+       * @description JPEG, PNG or WebP shelf photo
+       */
+      file: string;
+    };
+    /**
      * CheckResult
      * @description Outcome of probing one dependency.
      */
@@ -218,12 +284,101 @@ export interface components {
       status: "ok" | "fail";
     };
     /**
+     * DetectedItem
+     * @description One product group seen on the shelf.
+     */
+    DetectedItem: {
+      /** Confidence */
+      confidence: number;
+      /**
+       * Facings
+       * @description Front-facing units visible.
+       */
+      facings: number;
+      /**
+       * Label
+       * @description What is visible, e.g. 'Peak Evaporated Milk 160g'.
+       */
+      label: string;
+      region: components["schemas"]["BBox"];
+      /**
+       * Sku Id
+       * @description Planogram SKU id this product matches, or null if not in the planogram.
+       */
+      sku_id: string | null;
+    };
+    /**
      * ErrorResponse
      * @description Body of every 4xx/5xx the API raises deliberately.
      */
     ErrorResponse: {
       /** Detail */
       detail: string;
+    };
+    /**
+     * ExtractionOut
+     * @description A finished vision run: the model's extraction, the derived summary, and its cost.
+     */
+    ExtractionOut: {
+      /** Attempts */
+      attempts: number;
+      /** Cost Usd */
+      cost_usd: number | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      extraction: components["schemas"]["ShelfExtraction"];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Input Tokens */
+      input_tokens: number;
+      /** Latency Ms */
+      latency_ms: number;
+      /** Model */
+      model: string;
+      /** Output Tokens */
+      output_tokens: number;
+      /** Overall Confidence */
+      overall_confidence: number;
+      /** Planogram Version */
+      planogram_version: number;
+      /** Provider */
+      provider: string;
+      /**
+       * Run Id
+       * Format: uuid
+       */
+      run_id: string;
+      summary: components["schemas"]["ExtractionSummary"];
+    };
+    /**
+     * ExtractionSummary
+     * @description Numbers the dashboard and planner consume; derived, never model-authored.
+     */
+    ExtractionSummary: {
+      /**
+       * Compliance Rate
+       * @description Share of planogram slots at or above their minimum facings.
+       */
+      compliance_rate: number;
+      /**
+       * Planogram Share Of Shelf
+       * @description Percent of visible facings that belong to planogram SKUs.
+       */
+      planogram_share_of_shelf: number;
+      /** Slots */
+      slots: components["schemas"]["SlotCompliance"][];
+      /** Stock Out Count */
+      stock_out_count: number;
+      /** Stock Out Rate */
+      stock_out_rate: number;
+      /** Unknown Item Count */
+      unknown_item_count: number;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -252,6 +407,57 @@ export interface components {
       /** User Id */
       user_id: string;
     };
+    /**
+     * PhotoOut
+     * @description A shelf photo and where its processing stands.
+     */
+    PhotoOut: {
+      /** Content Type */
+      content_type: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Download Url
+       * @description Time-limited URL for the original image.
+       */
+      download_url: string;
+      /** Error */
+      error: string | null;
+      extraction: components["schemas"]["ExtractionOut"] | null;
+      /** Height */
+      height: number;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Shelf Id
+       * Format: uuid
+       */
+      shelf_id: string;
+      /** Size Bytes */
+      size_bytes: number;
+      status: components["schemas"]["PhotoStatus"];
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Uploaded By */
+      uploaded_by: string;
+      /** Width */
+      width: number;
+    };
+    /**
+     * PhotoStatus
+     * @description Where a photo is in the pipeline.
+     * @enum {string}
+     */
+    PhotoStatus: "queued" | "processing" | "done" | "failed";
     /**
      * PlanogramIn
      * @description Replace a shelf's planogram wholesale.
@@ -346,6 +552,41 @@ export interface components {
      */
     Role: "owner" | "manager" | "field_agent" | "reviewer";
     /**
+     * ShareOfShelf
+     * @description Share of visible facings held by one planogram SKU.
+     */
+    ShareOfShelf: {
+      /** Percent */
+      percent: number;
+      /**
+       * Sku Id
+       * Format: uuid
+       */
+      sku_id: string;
+    };
+    /**
+     * ShelfExtraction
+     * @description What the vision agent returns. The contract for evals and the review queue.
+     */
+    ShelfExtraction: {
+      /** Items */
+      items: components["schemas"]["DetectedItem"][];
+      /**
+       * Notes
+       * @description Anything a reviewer should know: glare, occlusion, doubts.
+       */
+      notes: string;
+      /** Overall Confidence */
+      overall_confidence: number;
+      /** Share Of Shelf */
+      share_of_shelf: components["schemas"]["ShareOfShelf"][];
+      /**
+       * Stock Outs
+       * @description Planogram SKU ids with zero facings visible.
+       */
+      stock_outs: string[];
+    };
+    /**
      * ShelfIn
      * @description Create a shelf inside a store.
      */
@@ -434,6 +675,32 @@ export interface components {
        * Format: date-time
        */
       updated_at: string;
+    };
+    /**
+     * SlotCompliance
+     * @description Expected versus observed facings for one planogram slot.
+     */
+    SlotCompliance: {
+      /** Expected Facings */
+      expected_facings: number;
+      /** Min Facings */
+      min_facings: number;
+      /** Name */
+      name: string;
+      /** Observed Facings */
+      observed_facings: number;
+      /** Position */
+      position: number;
+      /**
+       * Sku Id
+       * Format: uuid
+       */
+      sku_id: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "low" | "out";
     };
     /**
      * StoreIn
@@ -602,6 +869,64 @@ export interface operations {
       };
     };
   };
+  read_photo_v1_photos__photo_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        photo_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PhotoOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   read_shelf_v1_shelves__shelf_id__get: {
     parameters: {
       query?: never;
@@ -642,6 +967,153 @@ export interface operations {
       };
       /** @description Not found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_photos_v1_shelves__shelf_id__photos_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shelf_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PhotoOut"][];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  upload_photo_v1_shelves__shelf_id__photos_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shelf_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_upload_photo_v1_shelves__shelf_id__photos_post"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PhotoOut"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Too large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not an image */
+      415: {
         headers: {
           [name: string]: unknown;
         };

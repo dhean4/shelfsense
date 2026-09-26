@@ -7,8 +7,23 @@ these models and the migrations drift apart.
 import enum
 import uuid
 from datetime import datetime
+from decimal import Decimal
+from typing import Any
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, UniqueConstraint, func
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
 
 
@@ -186,6 +201,103 @@ class PlanogramSlot(TenantScoped, Base):
     sku: Mapped[Sku] = relationship()
 
 
+class PhotoStatus(enum.StrEnum):
+    """Where a photo is in the pipeline."""
+
+    queued = "queued"
+    processing = "processing"
+    done = "done"
+    failed = "failed"
+
+
+class RunStatus(enum.StrEnum):
+    """Lifecycle of an agent run."""
+
+    queued = "queued"
+    running = "running"
+    succeeded = "succeeded"
+    failed = "failed"
+
+
+PHOTO_STATUS_ENUM = Enum(
+    PhotoStatus, name="photo_status", values_callable=lambda e: [m.value for m in e]
+)
+RUN_STATUS_ENUM = Enum(RunStatus, name="run_status", values_callable=lambda e: [m.value for m in e])
+
+
+class Photo(TenantScoped, Base):
+    """An uploaded shelf photo. The bytes live in object storage under ``object_key``."""
+
+    __tablename__ = "photos"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    shelf_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("shelves.id", ondelete="CASCADE"), index=True
+    )
+    uploaded_by: Mapped[str] = mapped_column(String(128))
+    object_key: Mapped[str] = mapped_column(String(512), unique=True)
+    content_type: Mapped[str] = mapped_column(String(64))
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    width: Mapped[int] = mapped_column(Integer)
+    height: Mapped[int] = mapped_column(Integer)
+    status: Mapped[PhotoStatus] = mapped_column(PHOTO_STATUS_ENUM, index=True)
+    error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created_at()
+    updated_at: Mapped[datetime] = _updated_at()
+
+    extraction: Mapped["Extraction | None"] = relationship(
+        back_populates="photo", uselist=False, cascade="all, delete-orphan"
+    )
+
+
+class AgentRun(TenantScoped, Base):
+    """One agent invocation: tokens, cost, latency, outcome. The unit of observability."""
+
+    __tablename__ = "agent_runs"
+    __table_args__ = (Index("ix_agent_runs_kind_started", "kind", "started_at"),)
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    kind: Mapped[str] = mapped_column(String(32))
+    status: Mapped[RunStatus] = mapped_column(RUN_STATUS_ENUM)
+    photo_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("photos.id", ondelete="SET NULL"), index=True
+    )
+    provider: Mapped[str] = mapped_column(String(32))
+    model: Mapped[str] = mapped_column(String(128))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    cache_read_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    cache_write_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    error: Mapped[str | None] = mapped_column(Text)
+    trace_id: Mapped[str | None] = mapped_column(String(64))
+    started_at: Mapped[datetime] = _created_at()
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Extraction(TenantScoped, Base):
+    """The validated vision output for one photo, plus the derived summary."""
+
+    __tablename__ = "extractions"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    photo_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("photos.id", ondelete="CASCADE"), unique=True
+    )
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True
+    )
+    planogram_version: Mapped[int] = mapped_column(Integer)
+    result: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    overall_confidence: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = _created_at()
+
+    photo: Mapped[Photo] = relationship(back_populates="extraction")
+    run: Mapped[AgentRun] = relationship()
+
+
 TENANT_TABLES: tuple[str, ...] = (
     "users",
     "stores",
@@ -193,4 +305,7 @@ TENANT_TABLES: tuple[str, ...] = (
     "skus",
     "planograms",
     "planogram_slots",
+    "photos",
+    "agent_runs",
+    "extractions",
 )

@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from shelfsense_api.routes.me import router as me_router
+from shelfsense_api.routes.photos import router as photos_router
 from shelfsense_api.routes.planograms import router as planograms_router
 from shelfsense_api.routes.shelves import router as shelves_router
 from shelfsense_api.routes.skus import router as skus_router
@@ -14,4 +15,5 @@ ALL_ROUTERS: tuple[APIRouter, ...] = (
     shelves_router,
     skus_router,
     planograms_router,
+    photos_router,
 )

@@ -55,6 +55,22 @@ migrate: ## Apply database migrations (uses SHELFSENSE_MIGRATION_DATABASE_URL)
 seed: ## Load the deterministic demo dataset (idempotent)
 	$(UV) shelfsense-api seed
 
+.PHONY: worker
+worker: ## Run the background job worker (vision extraction, later the planner)
+	$(UV) shelfsense-api worker
+
+.PHONY: process-jobs
+process-jobs: ## Handle queued jobs inline once, without a long-running worker
+	$(UV) shelfsense-api process-jobs
+
+.PHONY: synth-photos
+synth-photos: ## Render the synthetic shelf photos + ground truth into apps/api/tests/fixtures/photos
+	$(UV) shelfsense-api synth-photos
+
+.PHONY: record-fixtures
+record-fixtures: ## Call the real model on the synthetic photos and save responses (needs ANTHROPIC_API_KEY, costs money)
+	$(UV) shelfsense-api record-fixtures
+
 .PHONY: openapi
 openapi: ## Export the OpenAPI document and regenerate the TS types from it
 	$(UV) shelfsense-api export-openapi

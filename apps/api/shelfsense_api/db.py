@@ -22,6 +22,10 @@ from shelfsense_api.models import Role
 
 _engines: dict[str, AsyncEngine] = {}
 
+# The background worker acts on the tenant's behalf without being a user. Policies on
+# system-written tables (migration 0002) list it explicitly.
+SYSTEM_ROLE = "system"
+
 
 def sqlalchemy_url(dsn: str) -> URL:
     """Turn a plain ``postgresql://`` DSN into the asyncpg dialect URL SQLAlchemy needs."""
@@ -55,12 +59,16 @@ SET_TENANT_CONTEXT = text(
 
 
 @asynccontextmanager
-async def tenant_session(dsn: str, tenant_id: UUID, role: Role) -> AsyncIterator[AsyncSession]:
+async def tenant_session(
+    dsn: str, tenant_id: UUID, role: Role | str
+) -> AsyncIterator[AsyncSession]:
     """One transaction scoped to ``tenant_id``. Commits on success, rolls back on error.
 
     ``set_config(..., true)`` is transaction-local, so the context cannot leak into the
-    next request that reuses the pooled connection.
+    next request that reuses the pooled connection. ``role`` is a user role or
+    :data:`SYSTEM_ROLE`.
     """
+    role_name = role.value if isinstance(role, Role) else role
     async with session_factory(dsn)() as session, session.begin():
-        await session.execute(SET_TENANT_CONTEXT, {"tenant_id": str(tenant_id), "role": role.value})
+        await session.execute(SET_TENANT_CONTEXT, {"tenant_id": str(tenant_id), "role": role_name})
         yield session

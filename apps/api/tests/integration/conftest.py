@@ -15,14 +15,20 @@ import asyncpg
 import pytest
 from alembic import command
 from httpx import ASGITransport, AsyncClient
+from testcontainers.community.minio import MinioContainer
 from testcontainers.community.postgres import PostgresContainer
+from testcontainers.community.redis import RedisContainer
 
 from shelfsense_api.cli import alembic_config
-from shelfsense_api.config import get_settings
+from shelfsense_api.config import Settings, get_settings
 from shelfsense_api.db import dispose_engines
+from shelfsense_api.jobs import reset_job_singletons
+from shelfsense_api.llm.fake import FakeProvider
+from shelfsense_api.llm.provider import get_provider, reset_providers
 from shelfsense_api.main import create_app
 from shelfsense_api.models import Role
 from shelfsense_api.seed import seed_database, stable_id
+from shelfsense_api.storage import PhotoStore
 
 pytestmark = pytest.mark.integration
 
@@ -69,12 +75,74 @@ def database() -> Iterator[Database]:
         yield Database(owner_url=owner_url, app_url=app_url)
 
 
+@dataclass(frozen=True)
+class ObjectStore:
+    endpoint_url: str
+    access_key: str
+    secret_key: str
+
+
+@pytest.fixture(scope="session")
+def object_store() -> Iterator[ObjectStore]:
+    # Same images as docker-compose.yml, so nothing extra is pulled.
+    with MinioContainer(image="minio/minio:latest") as minio:
+        host, port = minio.get_container_host_ip(), minio.get_exposed_port(9000)
+        yield ObjectStore(
+            endpoint_url=f"http://{host}:{port}",
+            access_key=minio.access_key,
+            secret_key=minio.secret_key,
+        )
+
+
+@pytest.fixture(scope="session")
+def redis_url() -> Iterator[str]:
+    with RedisContainer(image="redis:7-alpine") as redis:
+        host, port = redis.get_container_host_ip(), redis.get_exposed_port(6379)
+        yield f"redis://{host}:{port}/0"
+
+
 @pytest.fixture(autouse=True)
-def _point_settings_at_container(database: Database, monkeypatch: pytest.MonkeyPatch) -> None:
+def _point_settings_at_containers(
+    database: Database, object_store: ObjectStore, redis_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("SHELFSENSE_DATABASE_URL", database.app_url)
     monkeypatch.setenv("SHELFSENSE_MIGRATION_DATABASE_URL", database.owner_url)
     monkeypatch.setenv("SHELFSENSE_AUTH_MODE", "dev")
+    monkeypatch.setenv("SHELFSENSE_REDIS_URL", redis_url)
+    monkeypatch.setenv("SHELFSENSE_S3_ENDPOINT_URL", object_store.endpoint_url)
+    monkeypatch.setenv("SHELFSENSE_S3_ACCESS_KEY", object_store.access_key)
+    monkeypatch.setenv("SHELFSENSE_S3_SECRET_KEY", object_store.secret_key)
+    monkeypatch.setenv("SHELFSENSE_S3_BUCKET_PHOTOS", "photos-test")
+    monkeypatch.setenv("SHELFSENSE_LLM_PROVIDER", "fake")
     get_settings.cache_clear()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _reset_singletons() -> Iterator[None]:
+    reset_job_singletons()
+    reset_providers()
+    yield
+    reset_job_singletons()
+    reset_providers()
+
+
+@pytest.fixture
+async def bucket(object_store: ObjectStore) -> Settings:
+    """Settings for the test bucket, created if missing."""
+    settings = get_settings()
+    await PhotoStore(settings).ensure_bucket()
+    return settings
+
+
+@pytest.fixture
+def fake_llm() -> FakeProvider:
+    """The FakeProvider the worker will use, cleared for this test."""
+    provider = get_provider(get_settings())
+    assert isinstance(provider, FakeProvider)
+    provider.queue.clear()
+    provider.requests.clear()
+    provider.script = None
+    return provider
 
 
 @pytest.fixture
