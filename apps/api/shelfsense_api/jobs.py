@@ -24,6 +24,7 @@ from shelfsense_api.agents.tools import ToolContext
 from shelfsense_api.agents.vision import VisionFailed, result_payload, run_vision
 from shelfsense_api.config import Settings, get_settings
 from shelfsense_api.db import SYSTEM_ROLE, tenant_session
+from shelfsense_api.events import RunEvents
 from shelfsense_api.guardrails import CostCapExceeded, StepCapExceeded
 from shelfsense_api.llm import LLMResponse, get_provider
 from shelfsense_api.llm.pricing import cost_usd, load_prices
@@ -162,17 +163,23 @@ async def process_photo(payload: dict[str, Any]) -> None:
         )
         session.add(run)
         await session.flush()
+        events = RunEvents(settings.redis_url, tenant_id, run.id, run.kind)
+        await events.emit("run_started")
 
         try:
             image = await store.get(photo.object_key)
-            result = await run_vision(provider, settings, image, ctx, trace_tag=str(photo.id))
+            result = await run_vision(
+                provider, settings, image, ctx, trace_tag=str(photo.id), on_event=events.hook
+            )
         except VisionFailed as exc:
-            _finish(run, RunStatus.failed, _totals(exc.responses, settings), str(exc))
+            await _finish(
+                run, RunStatus.failed, _totals(exc.responses, settings), str(exc), events=events
+            )
             photo.status = PhotoStatus.failed
             photo.error = str(exc)
             return
         except LLMError as exc:
-            _finish(run, RunStatus.failed, {}, str(exc))
+            await _finish(run, RunStatus.failed, {}, str(exc), events=events)
             photo.status = PhotoStatus.failed if not exc.retryable else PhotoStatus.queued
             photo.error = str(exc)
             if exc.retryable:
@@ -180,7 +187,9 @@ async def process_photo(payload: dict[str, Any]) -> None:
                 raise  # let the queue retry; the state above is committed by the session
             return
 
-        _finish(run, RunStatus.succeeded, _totals(result.responses, settings), None)
+        await _finish(
+            run, RunStatus.succeeded, _totals(result.responses, settings), None, events=events
+        )
         extraction = Extraction(
             tenant_id=tenant_id,
             photo_id=photo.id,
@@ -257,6 +266,8 @@ async def plan_actions(payload: dict[str, Any]) -> None:
         )
         session.add(run)
         await session.flush()
+        events = RunEvents(settings.redis_url, tenant_id, run.id, run.kind)
+        await events.emit("run_started")
 
         ctx = ToolContext(
             session=session,
@@ -274,14 +285,16 @@ async def plan_actions(payload: dict[str, Any]) -> None:
             trigger_role=trigger_role,
         )
         try:
-            result = await run_planner(provider, settings, ctx, inp)
+            result = await run_planner(provider, settings, ctx, inp, on_event=events.hook)
         except (CostCapExceeded, StepCapExceeded, PlannerFailed) as exc:
             responses = tuple(getattr(exc, "responses", ()))
-            _finish(run, RunStatus.failed, _totals(responses, settings), str(exc))
+            await _finish(
+                run, RunStatus.failed, _totals(responses, settings), str(exc), events=events
+            )
             await _hold_unfinished_actions(session, run.id, str(exc))
             return
         except LLMError as exc:
-            _finish(run, RunStatus.failed, {}, str(exc))
+            await _finish(run, RunStatus.failed, {}, str(exc), events=events)
             await _hold_unfinished_actions(session, run.id, str(exc))
             if exc.retryable:
                 await session.flush()
@@ -289,7 +302,7 @@ async def plan_actions(payload: dict[str, Any]) -> None:
             return
 
         totals = _totals(tuple(result.responses), settings)
-        _finish(run, RunStatus.succeeded, totals, None)
+        await _finish(run, RunStatus.succeeded, totals, None, events=events)
         run.summary = json.loads(PlannerRunSummary.from_result(result).as_json())
 
 
@@ -333,6 +346,8 @@ async def plan_anomaly(payload: dict[str, Any]) -> None:
         )
         session.add(run)
         await session.flush()
+        events = RunEvents(settings.redis_url, tenant_id, run.id, run.kind)
+        await events.emit("run_started")
         anomaly.run_id = run.id
 
         ctx = ToolContext(
@@ -348,21 +363,29 @@ async def plan_anomaly(payload: dict[str, Any]) -> None:
             recent=recent or "none",
         )
         try:
-            result = await run_planner(provider, settings, ctx, inp)
+            result = await run_planner(provider, settings, ctx, inp, on_event=events.hook)
         except (CostCapExceeded, StepCapExceeded, PlannerFailed) as exc:
             responses = tuple(getattr(exc, "responses", ()))
-            _finish(run, RunStatus.failed, _totals(responses, settings), str(exc))
+            await _finish(
+                run, RunStatus.failed, _totals(responses, settings), str(exc), events=events
+            )
             await _hold_unfinished_actions(session, run.id, str(exc))
             return
         except LLMError as exc:
-            _finish(run, RunStatus.failed, {}, str(exc))
+            await _finish(run, RunStatus.failed, {}, str(exc), events=events)
             await _hold_unfinished_actions(session, run.id, str(exc))
             if exc.retryable:
                 anomaly.run_id = None
                 await session.flush()
                 raise
             return
-        _finish(run, RunStatus.succeeded, _totals(tuple(result.responses), settings), None)
+        await _finish(
+            run,
+            RunStatus.succeeded,
+            _totals(tuple(result.responses), settings),
+            None,
+            events=events,
+        )
         run.summary = json.loads(PlannerRunSummary.from_result(result).as_json())
 
 
@@ -377,7 +400,15 @@ async def _hold_unfinished_actions(session: AsyncSession, run_id: UUID, reason: 
     await session.flush()
 
 
-def _finish(run: AgentRun, status: RunStatus, totals: dict[str, Any], error: str | None) -> None:
+async def _finish(
+    run: AgentRun,
+    status: RunStatus,
+    totals: dict[str, Any],
+    error: str | None,
+    *,
+    events: RunEvents | None = None,
+) -> None:
+    """Close a run: status, totals, trace id, metrics, and the finished event."""
     run.status = status
     run.error = error
     run.finished_at = datetime.now(UTC)
@@ -386,3 +417,10 @@ def _finish(run: AgentRun, status: RunStatus, totals: dict[str, Any], error: str
     for key, value in totals.items():
         if value is not None or key == "cost_usd":
             setattr(run, key, value)
+    if events is not None:
+        await events.emit(
+            "run_finished",
+            status=status.value,
+            cost_usd=float(run.cost_usd) if run.cost_usd is not None else None,
+            error=error,
+        )

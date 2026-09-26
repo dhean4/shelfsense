@@ -3,11 +3,13 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import Select, select
 from sqlalchemy.orm import selectinload
 
 from shelfsense_api.config import Settings
 from shelfsense_api.deps import CurrentPrincipal, SettingsDep, TenantSession, require_role
+from shelfsense_api.events import runs_channel, sse_stream
 from shelfsense_api.jobs import PLAN_ACTIONS, get_queue
 from shelfsense_api.models import AgentRun, Extraction, Role, RunStatus
 from shelfsense_api.observability import trace_url
@@ -47,6 +49,27 @@ async def list_runs(
         stmt = stmt.where(AgentRun.status == status_filter)
     rows = await session.scalars(stmt)
     return [_run_out(run, settings) for run in rows]
+
+
+@router.get(
+    "/runs/stream",
+    responses={**READ_RESPONSES, 200: {"content": {"text/event-stream": {}}, "description": "SSE"}},
+)
+async def stream_runs(principal: CurrentPrincipal, settings: SettingsDep) -> StreamingResponse:
+    """Server-sent events for the tenant's runs.
+
+    Event types: ``run_started``, ``model_turn``, ``tool_result``, ``vision_attempt``,
+    ``run_finished``. Each carries ``run_id`` and ``kind``.
+    """
+    return StreamingResponse(
+        sse_stream(
+            settings.redis_url,
+            runs_channel(principal.tenant_id),
+            heartbeat_seconds=settings.telemetry_heartbeat_seconds,
+        ),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.get("/runs/{run_id}", response_model=RunOut, responses=READ_ONE_RESPONSES)

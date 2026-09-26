@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { RunLive } from "@/components/runs/run-live";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiError, apiGet } from "@/lib/api.server";
@@ -48,6 +49,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           value={`${(run.latency_ms / 1000).toFixed(1)}s over ${String(run.attempts)} call(s)`}
         />
       </div>
+      <RunLive runId={run.id} finished={run.status === "succeeded" || run.status === "failed"} />
       {run.trace_url ? (
         <p className="text-sm">
           <a

@@ -3690,6 +3690,45 @@
         "tags": ["runs"]
       }
     },
+    "/v1/runs/stream": {
+      "get": {
+        "description": "Server-sent events for the tenant's runs.\n\nEvent types: ``run_started``, ``model_turn``, ``tool_result``, ``vision_attempt``,\n``run_finished``. Each carries ``run_id`` and ``kind``.",
+        "operationId": "stream_runs_v1_runs_stream_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {}
+            },
+            "description": "SSE"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed"
+          }
+        },
+        "summary": "Stream Runs",
+        "tags": ["runs"]
+      }
+    },
     "/v1/runs/{run_id}": {
       "get": {
         "description": "One run with every tool call and action.",

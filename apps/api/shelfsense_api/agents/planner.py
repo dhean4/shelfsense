@@ -25,6 +25,7 @@ from shelfsense_api.agents.tools import (
 )
 from shelfsense_api.agents.vision import ExtractionSummary
 from shelfsense_api.config import Settings
+from shelfsense_api.events import EventHook
 from shelfsense_api.guardrails import (
     ActionKind,
     CostCapExceeded,
@@ -143,6 +144,7 @@ async def run_planner(
     *,
     executor: Executor | None = None,
     gate: bool = True,
+    on_event: EventHook | None = None,
 ) -> PlannerResult:
     """Run the loop under ``ctx`` (a tenant session), then apply review gating.
 
@@ -168,6 +170,17 @@ async def run_planner(
         )
         response = await provider.complete(request)
         responses.append(response)
+        if on_event is not None:
+            await on_event(
+                "model_turn",
+                {
+                    "step": step,
+                    "text": scrub(response.text)[:800],
+                    "tool_calls": [c.name for c in response.tool_calls],
+                    "stop_reason": response.stop_reason,
+                    "latency_ms": response.latency_ms,
+                },
+            )
         spent = _spend(responses, settings)
         if spent > settings.planner_max_cost_usd:
             raise CostCapExceeded(
@@ -216,6 +229,17 @@ async def run_planner(
         for call in response.tool_calls:
             execution = await run_tool(ctx, call.name, call.input)
             executions.append(execution)
+            if on_event is not None:
+                await on_event(
+                    "tool_result",
+                    {
+                        "step": step,
+                        "name": call.name,
+                        "ok": execution.error is None,
+                        "error": execution.error,
+                        "duration_ms": execution.duration_ms,
+                    },
+                )
             results.append(
                 ToolResultPart(
                     tool_use_id=call.id,

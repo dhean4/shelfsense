@@ -368,6 +368,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/runs/stream": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Stream Runs
+     * @description Server-sent events for the tenant's runs.
+     *
+     *     Event types: ``run_started``, ``model_turn``, ``tool_result``, ``vision_attempt``,
+     *     ``run_finished``. Each carries ``run_id`` and ``kind``.
+     */
+    get: operations["stream_runs_v1_runs_stream_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/runs/{run_id}": {
     parameters: {
       query?: never;
@@ -2787,6 +2810,45 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  stream_runs_v1_runs_stream_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description SSE */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+          "text/event-stream": unknown;
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };

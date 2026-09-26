@@ -374,6 +374,16 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
 
+  /v1/runs/stream:
+    get:
+      tags: [runs]
+      summary: Server-sent events of run progress (turns, tool results, finish)
+      responses:
+        "200":
+          description: text/event-stream
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
   /v1/runs/{run_id}:
     parameters:
       - name: run_id

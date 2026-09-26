@@ -14,6 +14,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, ValidationError
 
 from shelfsense_api.config import Settings
+from shelfsense_api.events import EventHook
 from shelfsense_api.images import MediaType, downscale, inspect
 from shelfsense_api.llm import ImagePart, LLMProvider, LLMRequest, LLMResponse, Message
 from shelfsense_api.llm.schema import api_schema
@@ -282,6 +283,7 @@ async def run_vision(
     ctx: PlanogramContext,
     *,
     trace_tag: str = "",
+    on_event: EventHook | None = None,
 ) -> VisionResult:
     """Run the extraction with the repair loop."""
     data, media_type = prepare_image(image, settings)
@@ -304,6 +306,11 @@ async def run_vision(
             extraction = validate_extraction(response.text, ctx)
         except ExtractionValidationError as exc:
             last_error = str(exc)
+            if on_event is not None:
+                await on_event(
+                    "vision_attempt",
+                    {"attempt": attempt + 1, "ok": False, "error": last_error[:500]},
+                )
             messages = [
                 *messages,
                 Message.assistant(response.text),
@@ -313,6 +320,16 @@ async def run_vision(
                 ),
             ]
             continue
+        if on_event is not None:
+            await on_event(
+                "vision_attempt",
+                {
+                    "attempt": attempt + 1,
+                    "ok": True,
+                    "stock_outs": len(extraction.stock_outs),
+                    "confidence": extraction.overall_confidence,
+                },
+            )
         return VisionResult(
             extraction=extraction, summary=summarise(extraction, ctx), responses=tuple(responses)
         )

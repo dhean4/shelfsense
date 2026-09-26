@@ -147,6 +147,20 @@ Every job is a trace with agent, generation (model, tokens, cost) and tool obser
 the run page links to it. The **Costs** page aggregates spend, tokens and p50/p95 latency
 per day and per model from the stored runs. See [ADR-0008](docs/decisions/0008-observability.md).
 
+### The web app
+
+| Page         | For          | What it does                                                          |
+| ------------ | ------------ | --------------------------------------------------------------------- |
+| `/`          | managers     | KPI tiles, fridge health map (Leaflet), what needs attention          |
+| `/upload`    | field agents | mobile camera capture → audit result; installable PWA                 |
+| `/review`    | reviewers    | approve/reject held actions, correct low-confidence photos, promote   |
+| `/runs`      | everyone     | every agent run; a run page streams turns and tool results live (SSE) |
+| `/telemetry` | managers     | devices, live readings, anomalies                                     |
+| `/evals`     | engineers    | latest scoreboard                                                     |
+| `/costs`     | owners       | spend, tokens and latency by day and model                            |
+
+See [ADR-0009](docs/decisions/0009-web-polish.md).
+
 ## Layout
 
 ```
@@ -172,8 +186,8 @@ docs/decisions/     ADRs
 | P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     | done   |
 | P6    | Evals package, dataset, scoring, CLI, CI PR comment                  | done   |
 | P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             | done   |
-| P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        | next   |
-| P9    | Deploy (Fly + Vercel), demo tenant, architecture docs, Loom script   |        |
+| P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        | done   |
+| P9    | Deploy (Fly + Vercel), demo tenant, architecture docs, Loom script   | next   |
 
 Definition of done per phase: tests green, `make verify` clean, docs updated, conventional
 commit proposed.

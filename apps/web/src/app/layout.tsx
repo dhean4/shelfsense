@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import type { ReactNode } from "react";
@@ -15,6 +15,15 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "ShelfSense",
   description: "Shelf photos and cold-chain telemetry in, reviewed decisions out.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "ShelfSense", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1a5cab",
+  width: "device-width",
+  initialScale: 1,
 };
 
 async function ClerkWrapper({ children }: { children: ReactNode }) {

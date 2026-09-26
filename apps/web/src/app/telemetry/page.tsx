@@ -44,6 +44,14 @@ export default async function TelemetryPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
+          {devices.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center text-muted-foreground">
+                No devices registered. Seed the demo fleet with{" "}
+                <code className="font-mono">make seed</code> or register one via the API.
+              </TableCell>
+            </TableRow>
+          ) : null}
           {devices.map((device) => (
             <TableRow key={device.id}>
               <TableCell>

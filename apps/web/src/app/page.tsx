@@ -1,9 +1,10 @@
 import Link from "next/link";
 
+import { FleetMapLoader } from "@/components/map/fleet-map-loader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiGetOrNull } from "@/lib/api.server";
 import { clerkEnabled } from "@/lib/auth";
-import type { ActionOut, MeOut, ReviewQueueOut, RunOut, StoreOut } from "@/lib/types";
+import type { ActionOut, DeviceOut, MeOut, ReviewQueueOut, RunOut, StoreOut } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -41,12 +42,14 @@ export default async function Home() {
       </div>
     );
   }
-  const [stores, queue, runs, approved] = await Promise.all([
+  const [stores, queue, runs, approved, devices] = await Promise.all([
     apiGetOrNull<StoreOut[]>("/v1/stores"),
     apiGetOrNull<ReviewQueueOut>("/v1/review/queue"),
     apiGetOrNull<RunOut[]>("/v1/runs?limit=10"),
     apiGetOrNull<ActionOut[]>("/v1/actions?status=approved&limit=50"),
+    apiGetOrNull<DeviceOut[]>("/v1/devices"),
   ]);
+  const openExcursions = (devices ?? []).filter((d) => d.open_anomaly).length;
   const pending = queue ? queue.actions.length + queue.extractions.length : null;
   const spend = (runs ?? []).reduce((total, run) => total + (run.cost_usd ?? 0), 0);
 
@@ -82,6 +85,30 @@ export default async function Home() {
           hint={runs ? `${String(runs.length)} runs` : undefined}
         />
       </div>
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-2">
+          <CardTitle>Fridge health</CardTitle>
+          <span className="text-sm text-muted-foreground">
+            {openExcursions === 0
+              ? "no open excursions"
+              : `${String(openExcursions)} open excursion${openExcursions === 1 ? "" : "s"}`}
+            {" · "}
+            <Link href="/telemetry" className="underline">
+              cold chain
+            </Link>
+          </span>
+        </CardHeader>
+        <CardContent>
+          {stores && stores.length > 0 ? (
+            <FleetMapLoader stores={stores} devices={devices ?? []} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No stores yet. Run <code className="font-mono">make seed</code> or create one via the
+              API.
+            </p>
+          )}
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader>
           <CardTitle>Where things stand</CardTitle>
