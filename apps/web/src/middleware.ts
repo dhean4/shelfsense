@@ -12,5 +12,12 @@ export default clerkEnabled
     };
 
 export const config = {
-  matcher: ["/((?!_next|.*\\..*).*)"],
+  matcher: [
+    // Skip Next.js internals and static files, unless found in search params
+    "/((?!_next|.*\\..*).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+    // Clerk's own endpoints (session sync, handshake)
+    "/__clerk/:path*",
+  ],
 };

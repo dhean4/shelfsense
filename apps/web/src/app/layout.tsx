@@ -26,10 +26,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Clerk's prebuilt components are themed with the shadcn preset so they pick up the same
+// CSS variables as the rest of the UI (the preset's stylesheet is imported in globals.css).
 async function ClerkWrapper({ children }: { children: ReactNode }) {
   if (!clerkEnabled) return <>{children}</>;
-  const { ClerkProvider } = await import("@clerk/nextjs");
-  return <ClerkProvider>{children}</ClerkProvider>;
+  const [{ ClerkProvider }, { shadcn }] = await Promise.all([
+    import("@clerk/nextjs"),
+    import("@clerk/ui/themes"),
+  ]);
+  return <ClerkProvider appearance={{ theme: shadcn }}>{children}</ClerkProvider>;
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

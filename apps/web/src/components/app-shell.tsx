@@ -7,13 +7,33 @@ import { PwaRegister } from "@/components/pwa-register";
 import type { DevIdentity } from "@/lib/auth";
 import { clerkEnabled } from "@/lib/auth";
 
+// Header controls in Clerk mode: sign-in/sign-up while signed out, organisation switcher
+// and user menu once signed in. `Show` reads the session on the server, so no flash.
 async function ClerkControls() {
   if (!clerkEnabled) return null;
-  const { OrganizationSwitcher, UserButton } = await import("@clerk/nextjs");
+  const { OrganizationSwitcher, Show, SignInButton, SignUpButton, UserButton } =
+    await import("@clerk/nextjs");
   return (
     <div className="flex items-center gap-3">
-      <OrganizationSwitcher />
-      <UserButton />
+      <Show when="signed-out">
+        <SignInButton mode="modal">
+          <button type="button" className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
+            Sign in
+          </button>
+        </SignInButton>
+        <SignUpButton mode="modal">
+          <button
+            type="button"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+          >
+            Sign up
+          </button>
+        </SignUpButton>
+      </Show>
+      <Show when="signed-in">
+        <OrganizationSwitcher />
+        <UserButton />
+      </Show>
     </div>
   );
 }

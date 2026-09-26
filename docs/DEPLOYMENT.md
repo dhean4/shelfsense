@@ -21,6 +21,22 @@ Clerk: enable **Organizations** on the instance (Configure → Organizations), c
 organisation roles `org:manager`, `org:field_agent`, `org:reviewer` (the default
 `org:admin` maps to owner), and note the frontend domain from the publishable key.
 
+The web app is linked to the Clerk application with the Clerk CLI; this has been run once
+for the development instance and only needs repeating on a fresh clone:
+
+```sh
+npm i -g clerk && clerk auth login
+cd apps/web && clerk init --app app_3JqLA852yYC6m1AlDa2SQ1uFdB8   # writes apps/web/.env.local
+clerk doctor
+```
+
+`clerk init` writes the publishable key, the secret key and the `/sign-in` and `/sign-up`
+route variables into `apps/web/.env.local` (gitignored; Next.js reads it directly). To run
+Clerk locally, set `NEXT_PUBLIC_AUTH_MODE=clerk` and `SHELFSENSE_AUTH_MODE=jwks` in `.env`
+(they must pair), then `make api` and `make web`. Sign-in and sign-up open as modals from the
+header and also live at `/sign-in` and `/sign-up`; `/v1/me` answers 403 until the user's
+organisation id is written to `tenants.external_org_id` (step 3).
+
 ## 1. Fly resources
 
 ```sh
@@ -90,6 +106,8 @@ vercel env add NEXT_PUBLIC_API_URL production # https://shelfsense-api.fly.dev
 vercel env add NEXT_PUBLIC_AUTH_MODE production # clerk
 vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY production
 vercel env add CLERK_SECRET_KEY production
+vercel env add NEXT_PUBLIC_CLERK_SIGN_IN_URL production # /sign-in
+vercel env add NEXT_PUBLIC_CLERK_SIGN_UP_URL production # /sign-up
 vercel --prod
 ```
 

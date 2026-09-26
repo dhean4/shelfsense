@@ -13,6 +13,7 @@
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@clerk/nextjs": "^7.9.7",
+    "@clerk/ui": "^1.36.0",
     "@shelfsense/shared": "workspace:*",
     "@tanstack/react-query": "^5.103.3",
     "class-variance-authority": "^0.7.1",

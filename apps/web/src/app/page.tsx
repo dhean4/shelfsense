@@ -9,13 +9,20 @@ import type { ActionOut, DeviceOut, MeOut, ReviewQueueOut, RunOut, StoreOut } fr
 export const dynamic = "force-dynamic";
 
 async function SignIn() {
-  const { SignInButton } = await import("@clerk/nextjs");
+  const { SignInButton, SignUpButton } = await import("@clerk/nextjs");
   return (
-    <SignInButton mode="modal">
-      <button type="button" className="rounded-md bg-primary px-4 py-2 text-primary-foreground">
-        Sign in
-      </button>
-    </SignInButton>
+    <div className="flex items-center justify-center gap-3">
+      <SignInButton mode="modal">
+        <button type="button" className="rounded-md bg-primary px-4 py-2 text-primary-foreground">
+          Sign in
+        </button>
+      </SignInButton>
+      <SignUpButton mode="modal">
+        <button type="button" className="rounded-md border px-4 py-2 hover:bg-accent">
+          Sign up
+        </button>
+      </SignUpButton>
+    </div>
   );
 }
 

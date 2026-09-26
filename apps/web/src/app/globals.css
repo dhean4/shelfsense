@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Clerk's shadcn theme reads the same --background/--primary/... variables defined below. */
+@import "@clerk/ui/themes/shadcn.css";
 
 @custom-variant dark (&:is(.dark *));
 

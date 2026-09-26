@@ -101,7 +101,10 @@ The contract is written first in [apps/api/openapi.yaml](apps/api/openapi.yaml);
 generated document and the TypeScript types are checked for drift in CI. With
 `SHELFSENSE_AUTH_MODE=jwks` the API verifies Clerk session tokens instead of dev headers
 (Clerk **Organizations** must be enabled; each organisation's id goes in
-`tenants.external_org_id`).
+`tenants.external_org_id`). The web app pairs with it via `NEXT_PUBLIC_AUTH_MODE=clerk`:
+sign-in and sign-up are Clerk modals in the header (also at `/sign-in` and `/sign-up`),
+styled with Clerk's shadcn theme; the Clerk CLI setup is in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#0-prerequisites).
 
 ## What is in the box
 
