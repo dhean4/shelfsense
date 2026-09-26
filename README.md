@@ -1,59 +1,141 @@
 # ShelfSense
 
+**Photograph a shop shelf. ShelfSense spots what is missing, drafts the reorder, and asks a
+person before any money is spent. It also watches the fridges.**
+
+<img src="docs/images/dashboard.png" alt="ShelfSense dashboard: store counts, actions awaiting review, spend, and a map of Lagos with one store marked red for a fridge fault" width="800">
+
+## The problem
+
+Small distributors in Lagos supply hundreds of corner shops with milk, noodles, drinks and
+soap. To know what is on each shelf, a field agent takes a photo and sends it over WhatsApp,
+and someone in the office types what they see into a spreadsheet. Orders are late, gaps on
+the shelf go unnoticed for days, and nobody notices a chiller that has quietly warmed up
+overnight until the stock inside has spoiled.
+
+ShelfSense reads the photo for you, checks the fridge readings for you, and writes up what
+should happen next. A person still makes the call.
+
+## Who it is for
+
+- **The field agent**, who takes one photo per shelf on a phone and is done.
+- **The shop or operations manager**, who approves, changes or rejects what the system
+  proposes, from a single queue.
+- **The distributor's owner**, who wants to see fridge health, pending decisions and what
+  the AI is costing, on one page.
+
+## One day at Ikeja Depot Shop
+
+The demo data follows a distributor called Lagos Fresh with two shops. Here is what one day
+looks like.
+
+**9:05 — Ada photographs the dairy chiller.**
+She picks the store and the shelf on her phone and taps upload. That is her whole job.
+
+<p>
+<img src="docs/images/upload-mobile.png" alt="Phone screen: pick the store and shelf, take a photo, upload" width="220">
+&nbsp;&nbsp;
+<img src="docs/images/shelf-dairy-two-stockouts.png" alt="A rendered dairy shelf with six slots, two of them empty" width="440">
+</p>
+
+_The shelf on the right is a computer-rendered test shelf, not a real photo. Real photos
+work the same way; see "What it does not do yet"._
+
+**9:06 — ShelfSense reads the photo.**
+It compares what it sees with the plan for that shelf (which product belongs in which slot).
+Two of the six slots are empty: Peak powdered milk and Cowbell milk sachets. It says how
+confident it is (82 %), so a shaky reading gets a second look from a person.
+
+**9:06 — It checks the stock room and drafts the orders.**
+The powdered milk is only missing from the shelf, there is more in the back room, so it
+just asks for a refill. The evaporated milk still looks fine on the shelf but the back room
+is empty, so it drafts an order for two cases, about ₦10,800, and writes a short note saying
+why.
+
+<img src="docs/images/run-planner.png" alt="A planner run: the model used, tokens, cost of $0.054, a plain-English summary, each tool call it made, and the two actions it proposed" width="800">
+
+**9:07 — The order waits for a manager.**
+₦10,800 is above the ₦5,000 that the system may approve on its own, so the order sits in the
+review queue. The manager can approve it, change the quantity first, or reject it. Whatever
+they decide is stamped with their name.
+
+<img src="docs/images/review-queue.png" alt="Review queue: a technician dispatch, an escalation and a milk reorder, each with the reason it was held and Approve/Reject buttons" width="800">
+
+**14:30 — The chiller at Ikeja warms up.**
+Every fridge reports its temperature every few seconds. When one stays above 8 °C for
+15 minutes, an alert opens, ShelfSense proposes sending a technician (held for approval,
+since a call-out costs about ₦15,000) and messages the manager to move the chilled stock. On
+the map, the store turns red.
+
+<img src="docs/images/cold-chain.png" alt="Cold chain page: the Ikeja fridge at 11°C marked as an open excursion, a live feed of readings, and a list of past anomalies" width="800">
+
+**End of day — every decision has a price tag.**
+Each time the AI reads a photo or plans an action, the cost is recorded next to the result.
+Reading one shelf costs about four US cents.
+
+<img src="docs/images/costs.png" alt="Cost and latency page: spend over 30 days, runs succeeded, tokens used, and a daily spend chart split by agent" width="800">
+
+**Nothing is spent, dispatched or sent without a person saying yes.**
+
+## What it does not do yet
+
+- It has not been put on the public internet. Everything runs on a laptop today; the steps
+  to deploy it are written down but have not been carried out.
+- It has been tested on rendered shelves, not on real photos. Real photos will be harder,
+  and the workflow for adding them is ready.
+- The WhatsApp and email messages it drafts are recorded, not sent. No messaging provider
+  is connected.
+- The map uses free OpenStreetMap tiles, which are fine for a demo and not for a product.
+
+<details>
+<summary><strong>Words used in this project</strong></summary>
+
+- **Planogram**: the plan of which product goes in which slot on a shelf.
+- **SKU**: one product line, for example "Peak Powdered Milk 400 g".
+- **Facings**: how many units of a product are visible from the front of the shelf.
+- **Stock-out**: a slot that should have a product in it and is empty.
+- **Telemetry**: the readings a fridge or van sends, such as temperature and location.
+- **Cold chain**: keeping chilled goods cold all the way from depot to shelf.
+- **Agent**: a program that decides a next step, uses a tool, reads the result, and repeats.
+- **Guardrail**: a rule that stops the agent acting alone, such as a spending limit.
+- **Eval**: a scored set of test cases that the agents are graded against.
+- **Tenant**: one customer company. Each tenant's data is walled off from every other.
+
+</details>
+
+## Screens
+
+<table>
+  <tr>
+    <td><a href="docs/images/dashboard.png"><img src="docs/images/dashboard.png" alt="Dashboard" width="380"></a><br><sub>Dashboard: stores, pending decisions, spend, fridge map</sub></td>
+    <td><a href="docs/images/review-queue.png"><img src="docs/images/review-queue.png" alt="Review queue" width="380"></a><br><sub>Review queue: approve, edit or reject what was held</sub></td>
+  </tr>
+  <tr>
+    <td><a href="docs/images/run-planner.png"><img src="docs/images/run-planner.png" alt="Planner run" width="380"></a><br><sub>A planner run: reasoning, tool calls, actions, cost</sub></td>
+    <td><a href="docs/images/cold-chain.png"><img src="docs/images/cold-chain.png" alt="Cold chain" width="380"></a><br><sub>Cold chain: live readings and open excursions</sub></td>
+  </tr>
+  <tr>
+    <td><a href="docs/images/evals.png"><img src="docs/images/evals.png" alt="Eval scoreboard" width="380"></a><br><sub>Eval scoreboard: how well the agents score on the test set</sub></td>
+    <td><a href="docs/images/costs.png"><img src="docs/images/costs.png" alt="Costs" width="380"></a><br><sub>Cost and latency per day, per model and per run</sub></td>
+  </tr>
+</table>
+
+---
+
+## For engineers
+
 **Agentic retail and cold-chain field operations.** Field agents photograph shelves and
 fridges stream telemetry; AI agents turn both into decisions (reorder, dispatch, escalate)
 behind a human review queue, with production-grade evals in CI and every model call traced
-and priced.
-
-Built as a flagship portfolio project for AI-engineer and agentic-systems roles. The
-real-world context is Lagos: small FMCG distributors who audit shelves over WhatsApp
-photos and Excel, and chill-chain fridges that fail silently.
+and priced. Built as a flagship portfolio project for AI-engineer and agentic-systems roles.
 
 > Status: **P0–P9 complete.** Deploy configuration is written and documented but the first
 > production deploy has not been executed (see _Known limitations_).
 
-## Architecture
+The system diagram, the component table, the repository layout, the phase list and the
+configuration knobs are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-```mermaid
-flowchart LR
-  subgraph Field
-    FA[Field agent<br/>mobile PWA] -->|photo| API
-    FR[Fridges / vans] -->|MQTT| ING[Ingester]
-  end
-
-  subgraph Platform
-    API[FastAPI<br/>RLS per tenant] -->|job| Q[(Redis Streams)]
-    Q --> W[Worker]
-    W --> V[Vision agent<br/>structured output + repair loop]
-    V --> P[Planner agent<br/>plan → act → observe]
-    P -->|typed tools| T[get_inventory · create_reorder<br/>dispatch_technician · notify · geocode]
-    T --> G{Guardrails<br/>confidence · cost · role}
-    G -->|auto-approve| ACT[(Actions)]
-    G -->|hold| RQ[Review queue]
-    ING -->|rule: > 8°C for 15 min| AN[(Anomalies)] --> Q
-    API --- PG[(Postgres 16<br/>pgvector · BRIN)]
-    API --- S3[(S3 (RustFS locally))]
-    MCP[MCP server] -->|/v1/tools| API
-  end
-
-  subgraph People
-    RQ --> REV[Reviewer<br/>approve · correct · promote]
-    REV -->|labelled examples| GOLD[(Golden set)]
-  end
-
-  subgraph Quality
-    GOLD --> EV[Evals CLI<br/>replay in CI · PR delta]
-    W --> LF[Langfuse traces]
-    W --> PM[Prometheus]
-  end
-
-  WEB[Next.js dashboard<br/>runs · review · map · costs] --> API
-```
-
-Everything above runs locally with `docker compose`; the agents call Claude through a
-provider-neutral layer and replay recorded responses in tests.
-
-## Quickstart
+### Quickstart
 
 Requirements: Docker, Node 22, pnpm 10, uv (Python 3.12), an Anthropic API key for live
 model calls (tests and evals need none).
@@ -62,7 +144,7 @@ model calls (tests and evals need none).
 make install     # uv sync + pnpm install
 make dev         # postgres :5433, redis :6379, s3 :9000, mqtt :1883   (make dev-full adds Langfuse :3001)
 make migrate     # alembic upgrade head
-make seed        # 2 tenants, 3 stores, 6 shelves, 59 SKUs, planograms, inventory, devices
+make seed        # 2 tenants, 3 stores, 6 shelves, 40 SKUs, planograms, inventory, devices
 make api         # FastAPI on :8000        make worker    # agents        make ingest   # MQTT
 make web         # Next.js on :3000        make simulate  # fridges + vans at 10x speed
 make demo        # queue the synthetic photos and an hour of telemetry with one fridge fault
@@ -73,7 +155,7 @@ Postgres sits on host port 5433 and Langfuse on 3001 to avoid the usual collisio
 override any port in `.env` (created from `.env.example` on first `make dev`). On macOS,
 `/usr/bin/make` may be the Xcode stub: `brew install make` or run the Makefile's commands.
 
-### A first run, end to end
+**A first run, end to end**
 
 1. `make demo` queues three synthetic shelf photos and an hour of telemetry.
 2. `make process-jobs` (or leave `make worker` running): the vision agent audits each photo
@@ -84,7 +166,8 @@ override any port in `.env` (created from `.env.example` on first `make dev`). O
    every call; **Costs** shows what it cost.
 
 To try it without spending: `SHELFSENSE_LLM_PROVIDER=replay SHELFSENSE_LLM_FIXTURES_DIR=apps/api/tests/fixtures/llm make process-jobs`
-replays the recorded vision responses for the three demo photos.
+replays the recorded vision responses for the three demo photos. The screenshots above come
+from `scripts/capture-screenshots.cjs` run against this local stack.
 
 ### Calling the API
 
@@ -98,69 +181,32 @@ curl -N localhost:8000/v1/runs/stream -H ...              # SSE of run progress
 ```
 
 The contract is written first in [apps/api/openapi.yaml](apps/api/openapi.yaml); the
-generated document and the TypeScript types are checked for drift in CI. With
-`SHELFSENSE_AUTH_MODE=jwks` the API verifies Clerk session tokens instead of dev headers
-(Clerk **Organizations** must be enabled; each organisation's id goes in
-`tenants.external_org_id`). The web app pairs with it via `NEXT_PUBLIC_AUTH_MODE=clerk`:
-sign-in and sign-up are Clerk modals in the header (also at `/sign-in` and `/sign-up`),
-styled with Clerk's shadcn theme; the Clerk CLI setup is in
+generated document and the TypeScript types are checked for drift in CI. Auth modes (dev
+headers locally, Clerk JWKS with Organizations in production) are described in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#auth-modes) and set up in
 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#0-prerequisites).
 
-## What is in the box
+### Decisions
 
-| Area          | Where                                              | Highlights                                                                                                 |
-| ------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Multi-tenancy | `apps/api/migrations`, ADR-0002                    | `tenant_id` on every row, RLS **forced**, non-superuser runtime role, API refuses to start as superuser    |
-| Vision agent  | `apps/api/shelfsense_api/agents/vision.py`         | grammar-constrained structured output, planogram-aware validation, repair loop, derived compliance summary |
-| Planner agent | `agents/planner.py`, `agents/tools.py`             | own plan → act → observe loop, typed tools logged call by call, step and cost caps                         |
-| Guardrails    | `guardrails.py`, ADR-0004                          | tool visibility by role, review gating by confidence/cost/role, PII scrub before prompts                   |
-| MCP           | `packages/mcp-tools`                               | stdio server bridging any MCP client to the same tools with the caller's identity                          |
-| Review        | `routes/review.py`, ADR-0005                       | approve/edit/reject actions; correct extractions; promote to the golden set                                |
-| Cold chain    | `telemetry.py`, `mqtt_ingest.py`, `apps/simulator` | MQTT and HTTP ingest, BRIN time series, 15-minute excursion rule, SSE live stream                          |
-| Evals         | `evals/`, ADR-0007                                 | 100 synthetic cases, 167 recorded model responses, replay in CI, PR delta comment, 2 % regression gate     |
-| Observability | `observability.py`, ADR-0008                       | Langfuse traces (agent → generation → tool), Prometheus metrics, cost per run, p50/p95                     |
-| Web           | `apps/web`                                         | review queue, live run timeline, fleet map, mobile upload PWA, evals and costs pages                       |
-| Contracts     | `apps/api/openapi.yaml`, `packages/shared`         | OpenAPI-first, generated TS types, zod schemas, CI drift check                                             |
-
-## Repository layout
-
-```
-apps/api            FastAPI, SQLAlchemy 2 async, Alembic, agents, tools, jobs   (Python, uv)
-apps/simulator      MQTT telemetry publisher                                     (Python, uv)
-apps/web            Next.js 15 App Router, Tailwind 4, shadcn/ui, TanStack Query (pnpm)
-packages/shared     zod schemas + TS types generated from OpenAPI                (pnpm)
-packages/mcp-tools  MCP server exposing the API's tools                          (pnpm)
-evals/              golden dataset, scorers, CLI runner, baseline                (Python, uv)
-infra/              mosquitto + postgres init
-docs/decisions/     ADRs 0001–0009        docs/DEPLOYMENT.md   docs/LOOM.md
-```
-
-## Phases
-
-| Phase | Scope                                                                | Status |
-| ----- | -------------------------------------------------------------------- | ------ |
-| P0    | Monorepo, tooling, Compose, CI skeleton, ADR-0001                    | done   |
-| P1    | Data model, migrations, RLS, seed; OpenAPI spec → generated TS types | done   |
-| P2    | Photo upload, job queue, vision agent, provider abstraction          | done   |
-| P3    | MCP tools, planner loop, tool-call logging, guardrails               | done   |
-| P4    | Human review queue + promote-to-golden-set                           | done   |
-| P5    | Simulator, MQTT ingest, SSE stream, anomaly rule                     | done   |
-| P6    | Evals package, dataset, scoring, CLI, CI PR comment                  | done   |
-| P7    | OTel + Langfuse spans, cost, Prometheus, dashboard pages             | done   |
-| P8    | Web polish: streaming agent UI, maps, mobile upload PWA, a11y        | done   |
-| P9    | Deploy config (Fly + Vercel), demo data, docs, Loom script           | done   |
-
-Each phase is one commit with green checks: `make verify` runs what CI runs.
-
-## Decisions & known limitations
-
-Decisions are recorded in [docs/decisions/](docs/decisions/), one ADR per phase. The ones
-most worth reading: [RLS and identity](docs/decisions/0002-tenant-context-and-auth.md),
+Every significant choice has an ADR in [docs/decisions/](docs/decisions/) (0001–0010). The
+ones most worth reading: [RLS and identity](docs/decisions/0002-tenant-context-and-auth.md),
 [the LLM layer and fixtures](docs/decisions/0003-llm-layer-and-jobs.md),
 [planner, tools and guardrails](docs/decisions/0004-planner-tools-and-guardrails.md),
 [evals](docs/decisions/0007-evals.md).
 
-Known limitations, stated rather than hidden:
+### Numbers you can check
+
+From [evals/baseline.json](evals/baseline.json), replayed from recorded model responses:
+
+- Vision: 60 synthetic cases, exact match 100 %, hallucination rate 0, mean $0.042 per photo.
+- Planner: 40 synthetic cases, decision accuracy 67.5 %, 6 cases unscored (fixtures
+  missing), mean $0.053 per run.
+- Guardrails ([config.py](apps/api/shelfsense_api/config.py)): auto-approve limit ₦5,000,
+  review below 0.7 confidence, excursion at 8 °C for 15 minutes.
+
+### Known limitations
+
+Stated rather than hidden:
 
 - **Not deployed yet.** `fly.toml`, the Dockerfile and `apps/web/vercel.json` are written
   and the image builds; the runbook is [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The
@@ -183,6 +229,6 @@ Known limitations, stated rather than hidden:
 - **Map tiles** come from public OpenStreetMap servers; production needs a tile provider.
 - **Bounding boxes are not editable** in the review UI; corrections edit facings per slot.
 
-## Contributing & licence
+### Contributing & licence
 
 [CONTRIBUTING.md](CONTRIBUTING.md) · [MIT](LICENSE)

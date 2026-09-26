@@ -9,7 +9,7 @@ Record at 1440p, browser at 125 % zoom, terminal font 16 px. Have `make dev-full
 chill-chain fridges fail silently. ShelfSense turns a shelf photo and fridge telemetry into
 decisions, with a human in the loop, evals in CI and every model call traced and priced."
 
-Show the README architecture diagram for five seconds.
+Show the architecture diagram in `docs/ARCHITECTURE.md` for five seconds.
 
 ## 0:30 — Field agent uploads (60 s)
 

@@ -28,7 +28,7 @@ export default async function PhotosPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Shelf photos</h1>
         <p className="text-sm text-muted-foreground">
           Pick a shelf and upload a photo. The vision agent audits it and the planner decides what
-          to do; watch the result on the runs page. (The mobile PWA page arrives in P8.)
+          to do; watch the result on the runs page. On a phone, use the upload page.
         </p>
       </div>
       <PhotoUploader

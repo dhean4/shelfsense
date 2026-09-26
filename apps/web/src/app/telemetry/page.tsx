@@ -29,7 +29,7 @@ export default async function TelemetryPage() {
         <p className="text-sm text-muted-foreground">
           Fridges and vans report over MQTT; a fridge above 8°C for 15 minutes opens an anomaly and
           the planner decides what to do. Run <code className="font-mono">make simulate</code> and{" "}
-          <code className="font-mono">make ingest</code> to see it live. (The map arrives in P8.)
+          <code className="font-mono">make ingest</code> to see it live.
         </p>
       </div>
       <Table>

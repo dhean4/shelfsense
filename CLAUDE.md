@@ -13,7 +13,8 @@ Prefer boring, well-documented choices over clever ones; explain any tradeoff in
 # Repo conventions
 
 - **Phases** are the unit of work. The phase list and the definition of done live in
-  [README.md](README.md). One phase per session; do not start the next without "go".
+  [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). One phase per session; do not start the next
+  without "go".
 - **Commits**: conventional commits, no co-author trailers. The owner commits after review;
   propose the message, do not run `git commit`.
 - **Verification** is `make verify` (ruff, ruff format, mypy --strict, pytest, prettier,

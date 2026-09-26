@@ -134,7 +134,21 @@ export default async function Home() {
             </Link>{" "}
             page.
           </p>
-          <p>Telemetry, maps, evals and cost pages arrive in P5 to P8.</p>
+          <p>
+            Fridge and van readings stream on the{" "}
+            <Link href="/telemetry" className="text-foreground underline">
+              cold chain
+            </Link>{" "}
+            page; quality and spend are on{" "}
+            <Link href="/evals" className="text-foreground underline">
+              evals
+            </Link>{" "}
+            and{" "}
+            <Link href="/costs" className="text-foreground underline">
+              costs
+            </Link>
+            .
+          </p>
         </CardContent>
       </Card>
     </div>
